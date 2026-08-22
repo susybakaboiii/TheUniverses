@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Poly Bridge (WebGL 1)</title>
+    <script>
+      var JSDELIVR_USER = "sussyahhblud";
+      var JSDELIVR_REPO  = "Poly-Bridge-WebGL";
+
+      // This page serves the WebGL 1.0 ONLY build, which lives in /WebGL1.
+      // The WebGL 2 build sits at the repo root and is served by PolyBridge.html.
+      var JSDELIVR_PATH = "WebGL1";
+
+      // Used only if the live commit lookup below fails (rate limit, offline, etc).
+      // jsDelivr caches branch refs for ~12h, so this is just a safety net.
+      var JSDELIVR_FALLBACK_REF = "main";
+
+      var JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+      var JSDELIVR_BASE = null;
+      var JSDELIVR_ROOT = null;
+
+      // Resolves the LATEST commit SHA on the branch via the GitHub API,
+      // then builds jsDelivr URLs pinned to that exact commit. jsDelivr
+      // caches per-commit URLs forever (a commit is immutable), but this
+      // lookup itself is always fresh -- so the moment you push new files,
+      // the next page load automatically picks them up with no manual
+      // cache purge and no waiting out jsDelivr's branch cache window.
+      window.jsdelivrReady = (async function resolveLatestRef() {
+        try {
+          var resp = await fetch(
+            "https://api.github.com/repos/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+            "/commits/" + JSDELIVR_FALLBACK_REF,
+            { headers: { "Accept": "application/vnd.github+json" } }
+          );
+          if (!resp.ok) throw new Error("GitHub API status " + resp.status);
+          var data = await resp.json();
+          if (data && data.sha) {
+            JSDELIVR_REF = data.sha;
+          }
+        } catch (err) {
+          // Fall back to the branch ref -- still works, just subject to
+          // jsDelivr's normal ~12h branch cache window.
+          console.warn("Falling back to branch ref '" + JSDELIVR_FALLBACK_REF +
+                        "' (couldn't resolve latest commit):", err);
+          JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+        }
+
+        var subPath = JSDELIVR_PATH.replace(/^\/+|\/+$/g, "");
+        JSDELIVR_BASE =
+          "https://cdn.jsdelivr.net/gh/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+          "@" + JSDELIVR_REF + (subPath ? "/" + subPath : "");
+
+        // TemplateData and header.png were pushed to the REPO ROOT alongside
+        // the WebGL 2 build, not duplicated into /WebGL1 - so they are fetched
+        // from the root base, not from JSDELIVR_BASE. Using JSDELIVR_BASE here
+        // would 404 and silently drop the stylesheet.
+        JSDELIVR_ROOT =
+          "https://cdn.jsdelivr.net/gh/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+          "@" + JSDELIVR_REF;
+
+        var favicon = document.createElement("link");
+        favicon.rel = "shortcut icon";
+        favicon.href = JSDELIVR_ROOT + "/TemplateData/favicon.ico";
+        document.head.appendChild(favicon);
+
+        var stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = JSDELIVR_ROOT + "/TemplateData/style.css";
+        document.head.appendChild(stylesheet);
+
+        return JSDELIVR_BASE;
+      })();
+    </script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #111;
+      }
+      #unity-container, #unity-canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        display: block;
+      }
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      #unity-canvas { -webkit-user-drag: none; }
+
+      #boot-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: transparent;
+        color: #e8e8e8;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        font: 14px 'Comic Sans MS', 'Comic Sans', cursive;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+      }
+      #boot-overlay.hidden { display: none; }
+
+      #boot-title {
+        font-size: 20px;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 4px;
+      }
+
+      #boot-log {
+        width: min(480px, 90vw);
+        max-height: 45vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #333 transparent;
+      }
+      #boot-log::-webkit-scrollbar { width: 4px; }
+      #boot-log::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+      .log-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0.55;
+        transition: opacity 0.15s;
+      }
+      .log-line.pending { opacity: 1; }
+      .log-line.error { opacity: 1; color: #ff6b6b; }
+      .log-line.done { opacity: 0.45; }
+
+      .log-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .log-pct {
+        min-width: 42px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .log-size {
+        min-width: 58px;
+        text-align: right;
+        opacity: 0.7;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot-overlay">
+      <div id="boot-title">Poly Bridge</div>
+      <div id="boot-log"></div>
+    </div>
+
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar" style="display:none">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">Poly Bridge</div>
+      </div>
+    </div>
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+      var unityInstanceRef = null;
+
+      var bootOverlay = document.querySelector("#boot-overlay");
+      var bootLog = document.querySelector("#boot-log");
+
+      var logLines = {};
+
+      function shouldLog(key) {
+        return key.indexOf(".data") !== -1 || key.indexOf(".wasm") !== -1;
+      }
+
+      function logStart(key) {
+        if (!shouldLog(key)) return;
+        var line = document.createElement("div");
+        line.className = "log-line pending";
+        line.innerHTML =
+          '<span class="log-name"></span>' +
+          '<span class="log-pct">0%</span>' +
+          '<span class="log-size"></span>';
+        line.querySelector(".log-name").textContent = key;
+        bootLog.appendChild(line);
+        logLines[key] = {
+          el: line,
+          pctEl: line.querySelector(".log-pct"),
+          sizeEl: line.querySelector(".log-size")
+        };
+        bootLog.scrollTop = bootLog.scrollHeight;
+      }
+
+      function logProgress(key, frac) {
+        var entry = logLines[key];
+        if (!entry) return;
+        var p = Math.round(Math.min(frac, 1) * 100);
+        entry.pctEl.textContent = p + "%";
+      }
+
+      function logDone(key, bytes) {
+        if (!shouldLog(key)) return;
+        var entry = logLines[key];
+        if (!entry) return;
+        entry.el.className = "log-line done";
+        entry.pctEl.textContent = "100%";
+        if (typeof bytes === "number") {
+          entry.sizeEl.textContent = formatBytes(bytes);
+        }
+        bootLog.scrollTop = bootLog.scrollHeight;
+      }
+
+      function logError(key) {
+        if (!shouldLog(key)) return;
+        var entry = logLines[key];
+        if (!entry) return;
+        entry.el.className = "log-line error";
+        entry.pctEl.textContent = "fail";
+        entry.sizeEl.textContent = "";
+      }
+
+      function formatBytes(n) {
+        if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+        if (n >= 1024) return (n / 1024).toFixed(0) + " KB";
+        return n + " B";
+      }
+
+      document.addEventListener("click", function() {
+        if (unityInstanceRef && !document.fullscreenElement) {
+          unityInstanceRef.SetFullscreen(1);
+        }
+      });
+
+      document.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+      document.addEventListener("dragstart", function(e) { e.preventDefault(); });
+
+      document.addEventListener("keydown", function(e) {
+        var k = e.key;
+        var kl = (k || "").toLowerCase();
+        var ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+        var blocked =
+          k === "F11" || k === "F5" || k === "F12" ||
+          (ctrlOrCmd && kl === "w") ||
+          (ctrlOrCmd && kl === "t") ||
+          (ctrlOrCmd && kl === "n") ||
+          (ctrlOrCmd && kl === "p") ||
+          (ctrlOrCmd && kl === "s") ||
+          (ctrlOrCmd && kl === "u") ||
+          (ctrlOrCmd && e.shiftKey && kl === "i") ||
+          (ctrlOrCmd && e.shiftKey && kl === "j") ||
+          (ctrlOrCmd && e.shiftKey && kl === "c") ||
+          (ctrlOrCmd && kl === "a") ||
+          (ctrlOrCmd && (k === "+" || k === "-" || k === "=")) ||
+          (e.altKey && k === "ArrowLeft") ||
+          (e.altKey && k === "ArrowRight") ||
+          k === "Backspace" && !isTypingTarget(e.target);
+
+        if (blocked) e.preventDefault();
+      });
+
+      function isTypingTarget(el) {
+        var tag = (el && el.tagName || "").toLowerCase();
+        return tag === "input" || tag === "textarea" || (el && el.isContentEditable);
+      }
+
+      window.addEventListener("beforeunload", function(e) {
+        e.preventDefault();
+        e.returnValue = "";
+      });
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      async function fetchParts(baseUrl, name, partCount, totalSize, onProgress, mimeType) {
+        var buffers = new Array(partCount);
+        var downloaded = 0;
+        var CONCURRENCY = 4;
+
+        async function fetchOnePart(i) {
+          var partName = name + ".part" + String(i).padStart(3, "0");
+          var partUrl = baseUrl + "/" + partName;
+
+          logStart(partName);
+          var attempt = 0;
+          while (true) {
+            try {
+              var resp = await fetch(partUrl);
+              if (!resp.ok) throw new Error("Status " + resp.status + " for " + partUrl);
+              var buf = await resp.arrayBuffer();
+              buffers[i] = buf;
+              downloaded += buf.byteLength;
+              logDone(partName, buf.byteLength);
+              if (onProgress) onProgress(Math.min(downloaded / totalSize, 1));
+              return;
+            } catch (err) {
+              attempt++;
+              if (attempt >= 3) {
+                logError(partName);
+                throw err;
+              }
+            }
+          }
+        }
+
+        var next = 0;
+        async function worker() {
+          while (next < partCount) {
+            var i = next++;
+            await fetchOnePart(i);
+          }
+        }
+
+        var workers = [];
+        for (var w = 0; w < CONCURRENCY; w++) workers.push(worker());
+        await Promise.all(workers);
+
+        return new Blob(buffers, mimeType ? { type: mimeType } : undefined);
+      }
+
+      var progressWeights = { data: 0.40, wasm: 0.40, framework: 0.05, instantiate: 0.15 };
+      var progressState = { data: 0, wasm: 0, framework: 0, instantiate: 0 };
+      function updateOverallProgress() {
+        var total =
+          progressState.data * progressWeights.data +
+          progressState.wasm * progressWeights.wasm +
+          progressState.framework * progressWeights.framework +
+          progressState.instantiate * progressWeights.instantiate;
+        progressBarFull.style.width = (100 * total) + "%";
+      }
+
+      // Unity names its output after the build folder, so the WebGL 1 build
+      // produces WebGL1.* rather than WebGL.*. Changing only JSDELIVR_PATH and
+      // leaving these as WebGL.* would 404 every file - and because
+      // manifest.json is keyed by filename, the manifest lookup would miss too
+      // and it would try to fetch the whole 56 MB data file in one piece.
+      var DATA_FILENAME = "WebGL1.data.unityweb";
+      var CODE_FILENAME = "WebGL1.wasm.unityweb";
+      var FRAMEWORK_FILENAME = "WebGL1.framework.js.unityweb";
+      var LOADER_FILENAME = "WebGL1.loader.js";
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      }
+
+      async function resolveAssetUrl(buildUrl, filename, manifest, onProgress) {
+        var entry = manifest[filename];
+        if (!entry) {
+          logStart(filename);
+          var resp = await fetch(buildUrl + "/" + filename);
+          if (!resp.ok) {
+            logError(filename);
+            throw new Error("Status " + resp.status + " for " + filename);
+          }
+          var buf = await resp.arrayBuffer();
+          logDone(filename, buf.byteLength);
+          if (onProgress) onProgress(1);
+          return URL.createObjectURL(new Blob([buf]));
+        }
+        var blob = await fetchParts(buildUrl, filename, entry.partCount, entry.totalSize, onProgress);
+        return URL.createObjectURL(blob);
+      }
+
+      async function boot() {
+        try {
+          // Wait for the latest-commit lookup to finish resolving JSDELIVR_BASE
+          var buildUrl = await window.jsdelivrReady;
+
+          var loaderUrl = buildUrl + "/" + LOADER_FILENAME;
+          var config = {
+            dataUrl: buildUrl + "/" + DATA_FILENAME,
+            frameworkUrl: buildUrl + "/" + FRAMEWORK_FILENAME,
+            codeUrl: buildUrl + "/" + CODE_FILENAME,
+            streamingAssetsUrl: buildUrl + "/StreamingAssets",
+            companyName: "riddy",
+            productName: "Poly Bridge",
+            productVersion: "1.0.0",
+            showBanner: unityShowBanner,
+          };
+
+          canvas.style.background = "url('" + JSDELIVR_ROOT + "/header.png') center / cover";
+
+          // silent load of manifest
+          var manifestResp = await fetch(buildUrl + "/manifest.json");
+          if (!manifestResp.ok) {
+            throw new Error("Couldn't load manifest.json (status " + manifestResp.status + ")");
+          }
+          var manifest = await manifestResp.json();
+
+          var [dataUrl, codeUrl, frameworkUrl] = await Promise.all([
+            resolveAssetUrl(buildUrl, DATA_FILENAME, manifest, function(p) {
+              progressState.data = p;
+              updateOverallProgress();
+            }),
+            resolveAssetUrl(buildUrl, CODE_FILENAME, manifest, function(p) {
+              progressState.wasm = p;
+              updateOverallProgress();
+            }),
+            resolveAssetUrl(buildUrl, FRAMEWORK_FILENAME, manifest, function(p) {
+              progressState.framework = p;
+              updateOverallProgress();
+            }),
+          ]);
+
+          config.dataUrl = dataUrl;
+          config.codeUrl = codeUrl;
+          config.frameworkUrl = frameworkUrl;
+
+          // silent load of loader
+          var script = document.createElement("script");
+          script.src = loaderUrl;
+          script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+              progressState.instantiate = progress;
+              updateOverallProgress();
+            }).then((unityInstance) => {
+              unityInstanceRef = unityInstance;
+              bootOverlay.classList.add("hidden");
+              fullscreenButton.onclick = () => {
+                unityInstance.SetFullscreen(1);
+              };
+              if (config.dataUrl.startsWith("blob:")) URL.revokeObjectURL(config.dataUrl);
+              if (config.codeUrl.startsWith("blob:")) URL.revokeObjectURL(config.codeUrl);
+              if (config.frameworkUrl.startsWith("blob:")) URL.revokeObjectURL(config.frameworkUrl);
+
+              unityInstance.SetFullscreen(1);
+            }).catch((message) => {
+              alert(message);
+            });
+          };
+          document.body.appendChild(script);
+
+        } catch (err) {
+          unityShowBanner("Failed to load game assets: " + err.message, "error");
+          console.error(err);
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
