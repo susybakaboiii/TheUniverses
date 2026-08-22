@@ -1,12 +1,12 @@
 {
-  "Eager": {
-    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/eager.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/thumbs/eager.png",
+  "EaglerCraft 1.8.8": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/eager.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png",
     "desc": "click to play"
   },
-  "Second Thing": {
-    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/second.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/thumbs/second.png"
+  "Poly Bridge": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge.png"
   },
-  "No Thumbnail Needed": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/third.html"
+  "No Thumbnail Needed": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/third.html"
 }
