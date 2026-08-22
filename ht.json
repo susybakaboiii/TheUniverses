@@ -1,5 +1,5 @@
 {
-  "EaglerCraft 1.8.8": {
+  "Minecraft 1.8.8": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/eager.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png",
     "desc": "click to play"
@@ -11,6 +11,10 @@
   "Riddy Stream": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/riddystream.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png"
+  },
+  "Hussrooms": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/huss.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/huss.png"
   },
   "Half Life 1": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/happlelife.html",
