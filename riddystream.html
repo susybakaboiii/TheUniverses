@@ -1,0 +1,246 @@
+<!DOCTYPE html><html lang=en><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><title>stream</title><style>*{margin:0;padding:0;box-sizing:border-box}html,body{height:100%;background:#000;color:#aaa;font-family:system-ui,sans-serif}body{display:flex;flex-direction:column}#bar{display:flex;gap:6px;padding:8px;background:#0a0a0a;border-bottom:1px solid #1a1a1a;align-items:center;flex-wrap:wrap}input,select,button{background:#111;border:1px solid #222;color:#ccc;padding:6px 9px;font-size:13px;border-radius:4px}#q{width:150px}#id{width:70px}#s,#e{min-width:52px;width:auto}#cw{max-width:150px}button{cursor:pointer}button:hover{background:#1a1a1a}#results{position:absolute;top:42px;left:8px;background:#111;border:1px solid #222;max-height:280px;overflow-y:auto;z-index:20;display:none;width:320px}#results div{padding:8px 10px;cursor:pointer;border-bottom:1px solid #1a1a1a;font-size:13px}#results div:hover{background:#1a1a1a}#player{flex:1;width:100%;border:none;background:#000}#status{padding:5px 10px;font-size:12px;color:#555}.hide{display:none!important}</style></head><body><div id=bar><input id=q placeholder="search title..."><input id=id placeholder="tmdb id"><select id=type><option value=movie>movie</option><option value=tv>tv</option></select><button id=btn-prev-ep class=hide>◀ Ep</button><select id=s class=hide></select><select id=e class=hide></select><button id=btn-next-ep class=hide>Ep ▶</button><select id=server></select><button id=btn-go>play</button><button id=btn-next>next</button><select id=cw><option value="">history...</option></select><button id=btn-about>about:blank</button><button id=btn-blob>blob</button></div><div id=results></div><iframe id=player allow="autoplay; fullscreen; encrypted-media"></iframe><div id=status>ready</div><script>(function(){
+const nativeOpen=window.open;
+const SERVER_URL="https://tmdb.superepicjamal.workers.dev".replace(/\/+$/, "");
+const PASSPHRASE="TGl0dGxlQnJvQnJvUGFzc3dvcmRCb2lBeW8xMjNAIw==";
+
+const list=[
+  {n:"vidspark",m:i=>`https://vidspark.to/movie/${i}`,t:(i,s,e)=>`https://vidspark.to/tv/${i}/${s}/${e}`},
+  {n:"vid-src",m:i=>`https://vid-src.top/embed/movie/${i}`,t:(i,s,e)=>`https://vid-src.top/embed/tv/${i}/${s}/${e}`},
+  {n:"vidking",m:i=>`https://www.vidking.net/embed/movie/${i}`,t:(i,s,e)=>`https://www.vidking.net/embed/tv/${i}/${s}/${e}`},
+  {n:"vidsrc.to",m:i=>`https://vidsrc.to/embed/movie/${i}`,t:(i,s,e)=>`https://vidsrc.to/embed/tv/${i}/${s}/${e}`},
+  {n:"videasy",m:i=>`https://player.videasy.net/movie/${i}`,t:(i,s,e)=>`https://player.videasy.net/tv/${i}/${s}/${e}`},
+  {n:"autoembed",m:i=>`https://player.autoembed.cc/embed/movie/${i}`,t:(i,s,e)=>`https://player.autoembed.cc/embed/tv/${i}/${s}/${e}`},
+  {n:"vidsrc.me",m:i=>`https://vidsrc.me/embed/movie?tmdb=${i}`,t:(i,s,e)=>`https://vidsrc.me/embed/tv?tmdb=${i}&season=${s}&episode=${e}`},
+  {n:"2embed",m:i=>`https://www.2embed.cc/embed/${i}`,t:(i,s,e)=>`https://www.2embed.cc/embedtv/${i}&s=${s}&e=${e}`},
+  {n:"vidlink",m:i=>`https://vidlink.pro/movie/${i}`,t:(i,s,e)=>`https://vidlink.pro/tv/${i}/${s}/${e}`},
+  {n:"smashystream",m:i=>`https://embed.smashystream.com/playere.php?tmdb=${i}`,t:(i,s,e)=>`https://embed.smashystream.com/playere.php?tmdb=${i}&season=${s}&episode=${e}`},
+  {n:"vidsrc.in",m:i=>`https://vidsrc.in/embed/movie/${i}`,t:(i,s,e)=>`https://vidsrc.in/embed/tv/${i}/${s}/${e}`},
+  {n:"vidsrc.pm",m:i=>`https://vidsrc.pm/embed/movie/${i}`,t:(i,s,e)=>`https://vidsrc.pm/embed/tv/${i}/${s}/${e}`},
+  {n:"vidbinge",m:i=>`https://vidbinge.com/embed/movie/${i}`,t:(i,s,e)=>`https://vidbinge.com/embed/tv/${i}/${s}/${e}`},
+  {n:"111movies",m:i=>`https://111movies.com/movie/${i}`,t:(i,s,e)=>`https://111movies.com/tv/${i}/${s}/${e}`}
+];
+
+let i=0,timer=null,seasonsData=[];
+
+const n=()=>null;window.open=n;window.blur=n;
+try{Object.defineProperty(window,"open",{value:n,writable:false})}catch(e){}
+try{Object.defineProperty(window,"blur",{value:n,writable:false})}catch(e){}
+
+const blockNav=e=>{if((e.target.tagName==="A"||e.target.tagName==="FORM")&&e.target.target==="_blank")e.preventDefault()};
+document.addEventListener("click",blockNav,true);
+document.addEventListener("auxclick",blockNav,true);
+document.addEventListener("submit",blockNav,true);
+
+if(window.navigation){window.navigation.addEventListener("navigate",e=>{if(!e.userInitiated&&e.canIntercept){e.preventDefault()}})}
+let recentUserClick=false;
+document.addEventListener("pointerdown",()=>{recentUserClick=true;setTimeout(()=>recentUserClick=false,1000)},true);
+window.addEventListener("beforeunload",e=>{if(!recentUserClick){e.preventDefault();e.returnValue=""}});
+
+const sel=document.getElementById("server");
+list.forEach((p,idx)=>{const o=document.createElement("option");o.value=idx;o.textContent=p.n;sel.appendChild(o)});
+
+document.addEventListener("click",e=>{
+  const q=document.getElementById("q"),box=document.getElementById("results"),type=document.getElementById("type");
+  if(!q.contains(e.target)&&!box.contains(e.target)&&!type.contains(e.target)){
+    box.style.display="none";
+  }
+});
+
+function fetchServer(path){
+  return fetch(`${SERVER_URL}${path}`, {
+    headers: { "X-Server-Auth": PASSPHRASE }
+  });
+}
+
+function onTypeChange(){
+  const isTv=document.getElementById("type").value==="tv";
+  document.getElementById("s").classList.toggle("hide",!isTv);
+  document.getElementById("e").classList.toggle("hide",!isTv);
+  document.getElementById("btn-prev-ep").classList.toggle("hide",!isTv);
+  document.getElementById("btn-next-ep").classList.toggle("hide",!isTv);
+  const box=document.getElementById("results");
+  if(box.style.display!=="none"&&document.getElementById("q").value.trim().length>1){
+    search();
+  }
+  if(isTv)loadSeasons();
+}
+
+async function loadSeasons(){
+  const id=document.getElementById("id").value.trim();
+  if(!id||document.getElementById("type").value!=="tv")return;
+  try{
+    const r=await fetchServer(`/tv/${id}`),d=await r.json();
+    seasonsData=d.seasons||[];
+    const sSel=document.getElementById("s");
+    sSel.innerHTML="";
+    seasonsData.filter(s=>s.season_number>0).forEach(s=>{const o=document.createElement("option");o.value=s.season_number;o.textContent=s.season_number;sSel.appendChild(o)});
+    if(sSel.options.length){sSel.selectedIndex=0;await loadEpisodes()}
+  }catch(e){}
+}
+
+async function loadEpisodes(){
+  const id=document.getElementById("id").value.trim(),s=document.getElementById("s").value;
+  if(!id||!s)return;
+  try{
+    const r=await fetchServer(`/tv/${id}/season/${s}`),d=await r.json();
+    const eSel=document.getElementById("e");
+    eSel.innerHTML="";
+    (d.episodes||[]).forEach(ep=>{const o=document.createElement("option");o.value=ep.episode_number;o.textContent=ep.episode_number;eSel.appendChild(o)})
+  }catch(e){}
+}
+
+async function changeEp(delta){
+  if(document.getElementById("type").value!=="tv")return;
+  const sSel=document.getElementById("s"),eSel=document.getElementById("e");
+  if(!sSel.options.length||!eSel.options.length)return;
+  
+  let newEIdx=eSel.selectedIndex+delta;
+  if(newEIdx>=0&&newEIdx<eSel.options.length){
+    eSel.selectedIndex=newEIdx;
+    load();
+  }else if(delta>0&&sSel.selectedIndex+1<sSel.options.length){
+    sSel.selectedIndex++;
+    await loadEpisodes();
+    if(eSel.options.length){
+      eSel.selectedIndex=0;
+      load();
+    }
+  }else if(delta<0&&sSel.selectedIndex>0){
+    sSel.selectedIndex--;
+    await loadEpisodes();
+    if(eSel.options.length){
+      eSel.selectedIndex=eSel.options.length-1;
+      load();
+    }
+  }
+}
+
+function saveCW(){
+  const id=document.getElementById("id").value.trim();
+  if(!id)return;
+  const type=document.getElementById("type").value;
+  const title=document.getElementById("q").value.trim()||document.getElementById("status").textContent||id;
+  const s=type==="tv"?document.getElementById("s").value:"";
+  const e=type==="tv"?document.getElementById("e").value:"";
+
+  let history=[];
+  try{history=JSON.parse(localStorage.getItem("stream_cw")||"[]")}catch(err){}
+  history=history.filter(x=>!(x.id===id&&x.type===type));
+  history.unshift({id,type,title,s,e,ts:Date.now()});
+  history=history.slice(0,10);
+  localStorage.setItem("stream_cw",JSON.stringify(history));
+  renderCW();
+}
+
+function renderCW(){
+  const cwSel=document.getElementById("cw");
+  cwSel.innerHTML='<option value="">history...</option>';
+  let history=[];
+  try{history=JSON.parse(localStorage.getItem("stream_cw")||"[]")}catch(err){}
+  history.forEach((item,idx)=>{
+    const opt=document.createElement("option");
+    opt.value=idx;
+    opt.textContent=item.type==="tv"?`${item.title} (S${item.s}E${item.e})`:item.title;
+    cwSel.appendChild(opt);
+  });
+}
+
+async function resumeCW(idx){
+  let history=[];
+  try{history=JSON.parse(localStorage.getItem("stream_cw")||"[]")}catch(err){}
+  const item=history[idx];
+  if(!item)return;
+
+  document.getElementById("id").value=item.id;
+  document.getElementById("q").value=item.title;
+  document.getElementById("type").value=item.type;
+  
+  onTypeChange();
+
+  if(item.type==="tv"){
+    await loadSeasons();
+    const sSel=document.getElementById("s");
+    sSel.value=item.s;
+    await loadEpisodes();
+    const eSel=document.getElementById("e");
+    eSel.value=item.e;
+  }
+  load();
+}
+
+async function search(){
+  clearTimeout(timer);
+  const q=document.getElementById("q").value.trim(),box=document.getElementById("results");
+  if(q.length<2){box.style.display="none";return}
+  timer=setTimeout(async()=>{
+    const type=document.getElementById("type").value;
+    try{
+      const r=await fetchServer(`/search/${type}?query=${encodeURIComponent(q)}`),data=await r.json();
+      box.innerHTML="";
+      (data.results||[]).slice(0,8).forEach(item=>{
+        const title=item.title||item.name,year=(item.release_date||item.first_air_date||"").slice(0,4),div=document.createElement("div");
+        div.textContent=`${title} (${year}) · ${item.id}`;
+        div.onclick=()=>{
+          document.getElementById("id").value=item.id;
+          document.getElementById("q").value=title;
+          box.style.display="none";
+          document.getElementById("status").textContent=title;
+          if(document.getElementById("type").value==="tv")loadSeasons();
+        };
+        box.appendChild(div);
+      });
+      box.style.display=box.children.length?"block":"none";
+    }catch(e){document.getElementById("status").textContent="search failed"}
+  },300);
+}
+
+function getUrl(){
+  const id=document.getElementById("id").value.trim();
+  if(!id)return null;
+  const p=list[i];
+  return document.getElementById("type").value==="movie"?p.m(id):p.t(id,document.getElementById("s").value||1,document.getElementById("e").value||1);
+}
+
+function load(){
+  if(i>=list.length){document.getElementById("status").textContent="no more providers";return}
+  const u=getUrl();
+  if(!u)return;
+  document.getElementById("server").selectedIndex=i;
+  document.getElementById("player").src=u;
+  document.getElementById("status").textContent=list[i].n+" · "+(i+1)+"/"+list.length;
+  saveCW();
+}
+
+function go(){i=document.getElementById("server").selectedIndex;load()}
+function next(){i=(i+1)%list.length;load()}
+
+function openAboutBlank(){
+  const w=nativeOpen("about:blank","_blank");
+  if(!w){document.getElementById("status").textContent="popup blocked";return}
+  w.document.open();
+  w.document.write(document.documentElement.outerHTML);
+  w.document.close();
+}
+
+function openBlob(){
+  const html=document.documentElement.outerHTML,blob=new Blob([html],{type:"text/html"}),url=URL.createObjectURL(blob),w=nativeOpen(url,"_blank");
+  if(!w)location.href=url;
+}
+
+document.getElementById("q").addEventListener("input",search);
+document.getElementById("id").addEventListener("change",loadSeasons);
+document.getElementById("type").addEventListener("change",onTypeChange);
+document.getElementById("s").addEventListener("change",loadEpisodes);
+document.getElementById("btn-prev-ep").addEventListener("click",()=>changeEp(-1));
+document.getElementById("btn-next-ep").addEventListener("click",()=>changeEp(1));
+document.getElementById("server").addEventListener("change",function(){i=this.selectedIndex;load()});
+document.getElementById("btn-go").addEventListener("click",go);
+document.getElementById("btn-next").addEventListener("click",next);
+document.getElementById("cw").addEventListener("change",function(){if(this.value!=="")resumeCW(parseInt(this.value,10))});
+document.getElementById("btn-about").addEventListener("click",openAboutBlank);
+document.getElementById("btn-blob").addEventListener("click",openBlob);
+
+alert("this player uses free embed servers and often contain ads and redirects.\n\nso use an adblocker and redirect blocker");
+renderCW();
+onTypeChange();
+})();</script></body></html>
