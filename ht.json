@@ -8,5 +8,20 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge.png"
   },
-  "No Thumbnail Needed": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/third.html"
+  "Riddy Stream": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/riddystream.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png"
+  },
+  "Half Life 1": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/happlelife.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/happlelife.png"
+  },
+  "Stardew Valley": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/star.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/star.png"
+  },
+  "Cookie Clicker": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cookies.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
+  }
 }
