@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+* { margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+#MMFCanvas { display: block; }
+</style>
+<title>Five Nights at Freddy's</title>
+
+<script>
+if (!document.createElement("canvas").getContext) {
+    window.open("http://www.clickteam.com/html5-fallback", "_self");
+}
+</script>
+
+<script>
+const origOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url, ...args) {
+    if (url && url.includes('FNAF1.cc2')) {
+        this._block = true;
+    }
+    return origOpen.call(this, method, url, ...args);
+};
+const origSend = XMLHttpRequest.prototype.send;
+XMLHttpRequest.prototype.send = function(...args) {
+    if (this._block) {
+        setTimeout(() => {
+            Object.defineProperty(this, 'status', {value: 404});
+            Object.defineProperty(this, 'readyState', {value: 4});
+            this.dispatchEvent(new Event('load'));
+        }, 0);
+        return;
+    }
+    return origSend.call(this, ...args);
+};
+</script>
+
+<script>
+const origImage = window.Image;
+window.Image = function(...args) {
+    const img = new origImage(...args);
+    img.crossOrigin = "anonymous";
+    return img;
+};
+</script>
+
+<script src="https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF1/src/Runtime.js"></script>
+
+</head>
+<body>
+    <canvas id="MMFCanvas" width="1280" height="720"></canvas>
+    <script>
+        window.addEventListener("load", windowLoaded, false);
+        function windowLoaded() {
+            new Runtime("MMFCanvas", "https://cdn.jsdelivr.net/gh/sussyahhblud/tuffblud@main/FNAF/FNAF1/resources/FNAF1.cch");
+        }
+    </script>
+</body>
+</html>
