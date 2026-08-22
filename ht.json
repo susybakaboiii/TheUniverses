@@ -1,0 +1,12 @@
+{
+  "Eager": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/eager.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/thumbs/eager.png",
+    "desc": "click to play"
+  },
+  "Second Thing": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/second.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/thumbs/second.png"
+  },
+  "No Thumbnail Needed": "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/third.html"
+}
