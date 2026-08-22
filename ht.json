@@ -1,7 +1,8 @@
 {
   "Minecraft 1.8.8": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/eager.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png"
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png",
+    "desc": "click to play"
   },
   "Poly Bridge": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
@@ -9,8 +10,7 @@
   },
   "Riddy Stream": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/riddystream.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png",
-    "desc": "MAY BREAK SITE!! if it does just reload page."
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png"
   },
   "Hussrooms": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/huss.html",
@@ -27,5 +27,9 @@
   "Cookie Clicker": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cookies.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
+  },
+  "Cheese Rolling": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cheese.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cheese.png"
   }
 }
