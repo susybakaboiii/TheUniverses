@@ -1,15 +1,11 @@
-<!doctype html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<html lang="en-us"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | CheeseRolling</title>
-    <base
-      href="https://cdn.jsdelivr.net/gh/SomeRandomFella/portsandrips@master/CheeseRollingWeb/"
-    />
-    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <base href="https://cdn.jsdelivr.net/gh/SomeRandomFella/portsandrips@master/CheeseRollingWeb/">
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="manifest" href="manifest.webmanifest">
     <style>
       #part-loader {
         position: fixed;
@@ -62,8 +58,28 @@
   <body>
     <div id="part-loader">
       <h1>Loading 🧀🧀🧀🧀🧀</h1>
-      <div id="parts-list"></div>
-      <div id="overall-status">rolling cheese wheels...</div>
+      <div id="parts-list"><div class="part-item">
+          <div class="part-label" id="lbl-file0_1">CheeseRolling.data — part 1 of 5</div>
+          <div class="part-bar-bg"><div class="part-bar-fill" id="bar-file0_1" style="width: 53%;"></div></div>
+          <div class="part-status" id="status-file0_1">53%</div>
+        </div><div class="part-item">
+          <div class="part-label" id="lbl-file0_2">CheeseRolling.data — part 2 of 5</div>
+          <div class="part-bar-bg"><div class="part-bar-fill" id="bar-file0_2"></div></div>
+          <div class="part-status" id="status-file0_2">waiting...</div>
+        </div><div class="part-item">
+          <div class="part-label" id="lbl-file0_3">CheeseRolling.data — part 3 of 5</div>
+          <div class="part-bar-bg"><div class="part-bar-fill" id="bar-file0_3"></div></div>
+          <div class="part-status" id="status-file0_3">waiting...</div>
+        </div><div class="part-item">
+          <div class="part-label" id="lbl-file0_4">CheeseRolling.data — part 4 of 5</div>
+          <div class="part-bar-bg"><div class="part-bar-fill" id="bar-file0_4"></div></div>
+          <div class="part-status" id="status-file0_4">waiting...</div>
+        </div><div class="part-item">
+          <div class="part-label" id="lbl-file0_5">CheeseRolling.data — part 5 of 5</div>
+          <div class="part-bar-bg"><div class="part-bar-fill" id="bar-file0_5"></div></div>
+          <div class="part-status" id="status-file0_5">waiting...</div>
+        </div></div>
+      <div id="overall-status">LOADING CheeseRolling.data...</div>
     </div>
 
     <div id="unity-container" style="display: none">
@@ -270,5 +286,6 @@
 
       loadAllParts();
     </script>
-  </body>
-</html>
+  
+
+</body></html>
