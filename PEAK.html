@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
@@ -11,12 +10,17 @@
          letterbox bar rather than a strip of a different colour hanging off the bottom */
       html, body { margin: 0; padding: 0; background: #000; height: 100%;
                    overflow: hidden; }
-      #wrap { display: flex; flex-direction: column; align-items: center;
-              justify-content: center; height: 100%; background: #000; }
+      #wrap { position: relative; display: flex; flex-direction: column;
+              align-items: center; justify-content: center; height: 100%;
+              background: #000; }
       #unity-canvas { background: #000; max-width: 100%; max-height: 100%;
                       outline: none; display: block; }
-      #bar { width: 320px; height: 12px; margin-top: 14px; border: 1px solid #555;
-             display: none; }
+      /* overlay sits centered over the canvas/screen instead of stacking below it */
+      #overlay { position: absolute; top: 50%; left: 50%;
+                 transform: translate(-50%, -50%); display: flex;
+                 flex-direction: column; align-items: center; z-index: 5;
+                 pointer-events: none; width: 320px; }
+      #bar { width: 320px; height: 12px; border: 1px solid #555; display: none; }
       #barfill { width: 0%; height: 100%; background: #7cc242; }
       #msg { color: #bbb; font: 13px/1.5 system-ui, sans-serif; margin-top: 10px;
              text-align: center; }
@@ -35,8 +39,10 @@
   <body>
     <div id="wrap">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-      <div id="bar"><div id="barfill"></div></div>
-      <div id="msg">Loading…</div>
+      <div id="overlay">
+        <div id="bar"><div id="barfill"></div></div>
+        <div id="msg">Loading…</div>
+      </div>
     </div>
     <button id="fs" type="button">Fullscreen</button>
     <div id="credit">
@@ -106,12 +112,13 @@
       var TOTAL = MANIFEST.data.bytes + MANIFEST.framework.bytes + MANIFEST.code.bytes;
       var downloaded = 0;
 
-      function report(label) {
+      function report(label, partInfo) {
         bar.style.display = "block";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
-        setMsg("Downloading " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
-               " MB (" + Math.floor(pct * 100) + "%)");
+        var partText = partInfo ? " — " + partInfo : "";
+        setMsg("Downloading " + label + partText + "… " + mb(downloaded) + " / " +
+               mb(TOTAL) + " MB (" + Math.floor(pct * 100) + "%)");
       }
 
       // Fetch every part and glue them into one Blob, then expose it as a blob: URL.
@@ -122,6 +129,14 @@
         var urls = entry.parts || [entry.file];
         var buffers = [];
         for (var i = 0; i < urls.length; i++) {
+          // show which specific file/part is currently in flight, e.g.
+          // "part 3/13 (WebGL.data.unityweb.part002)" — filename included so it's
+          // obvious exactly what's being pulled, not just a bare counter
+          var partInfo = urls.length > 1
+            ? "part " + (i + 1) + "/" + urls.length + " (" + urls[i] + ")"
+            : urls[i];
+          report(label, partInfo);
+
           var url = BUILD + "/" + urls[i];
           var res = await fetch(url);
           if (!res.ok) throw new Error("failed to fetch " + url + " (" + res.status + ")");
@@ -132,14 +147,14 @@
               if (step.done) break;
               buffers.push(step.value);
               downloaded += step.value.byteLength;
-              report(label);
+              report(label, partInfo);
             }
           } else {
             // no streaming support: fall back to whole-part reads
             var buf = await res.arrayBuffer();
             buffers.push(buf);
             downloaded += buf.byteLength;
-            report(label);
+            report(label, partInfo);
           }
         }
         return URL.createObjectURL(new Blob(buffers));
