@@ -1,0 +1,63 @@
+{
+  "Minecraft 1.8.8": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/eager.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png"
+  },
+  "Poly Bridge": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge.png"
+  },
+  "Riddy Stream": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/riddystream.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png",
+    "desc": "may break site. reload if it does."
+  },
+  "Hussrooms": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/huss.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/huss.png"
+  },
+  "Half Life 1": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/happlelife.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/happlelife.png"
+  },
+  "Arctic": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/arctic.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/arctic.png"
+  },
+  "Stardew Valley": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/star.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/star.png"
+  },
+  "Cookie Clicker": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cookies.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
+  },
+  "PEAK": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/peak.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/peak.png"
+  },
+  "GTA III": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/gta3.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/gta3.png"
+  },
+  "Cluster Truck": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/clustertruck.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/clustertruck.png"
+  },
+  "Cheese Rolling": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cheese.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cheese.png"
+  },
+  "Five Nights at Freddy's": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fnaf.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/fnaf.png"
+  },
+  "Five Nights at Freddy's 2": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fnaf2.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/fnaf2.png"
+  },
+  "Super Mario Bros": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/mario.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/mario.png"
+  }
+}
