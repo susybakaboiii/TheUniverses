@@ -33,8 +33,8 @@
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
   },
   "PEAK": {
-    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/PEAK.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/PEAK.png"
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/peak.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/peak.png"
   },
   "GTA III": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/gta3.html",
@@ -45,8 +45,12 @@
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/clustertruck.png"
   },
   "Cheese Rolling": {
-    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cheese.html",
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/Cheese2.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cheese.png"
+  },
+  "Granny": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/granny.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/granny.png"
   },
   "Five Nights at Freddy's": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fnaf.html",
