@@ -31,18 +31,27 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    text-align: center;
+    white-space: nowrap;
   }
 </style>
 </head>
 <body>
 <div id="loading">Loading GTA III...</div>
 <script>
+  // Central place to update the on-screen status, used both by our own chunk
+  // loader (before Module exists) and by emscripten's Module.setStatus later.
+  function setLoadingText(text) {
+    var loading = document.getElementById('loading');
+    if (loading) loading.textContent = text;
+  }
+
   window.addEventListener('unhandledrejection', function(e) {
     if (e.reason && e.reason.name && e.reason.name.indexOf('DocumentError') !== -1) {
       e.preventDefault();
       return;
     }
-    document.getElementById('loading').textContent = 'ERR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+    setLoadingText('ERR: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
   });
   (function() {
     var _rpl = Element.prototype.requestPointerLock;
@@ -63,13 +72,21 @@
     };
     async function loadDataParts() {
       var parts = [];
+      var totalBytes = 0;
       for (var i = 0; ; i++) {
-        var resp = await ORIG_FETCH.call(window, 're3.chunk.' + i);
+        var chunkName = 're3.chunk.' + i;
+        setLoadingText('Downloading part ' + (i + 1) + ' (' + chunkName + ')...');
+        var resp = await ORIG_FETCH.call(window, chunkName);
         if (!resp.ok) break;
-        parts.push(await resp.arrayBuffer());
+        var buf = await resp.arrayBuffer();
+        parts.push(buf);
+        totalBytes += buf.byteLength;
+        setLoadingText('Downloading part ' + (i + 1) + ' (' + chunkName + ')... ' +
+          (totalBytes / 1048576).toFixed(1) + ' MB so far');
       }
-      var total = parts.reduce(function(s, p) { return s + p.byteLength; }, 0);
-      var combined = new Uint8Array(total);
+      setLoadingText('Assembling data (' + parts.length + ' parts, ' +
+        (totalBytes / 1048576).toFixed(1) + ' MB)...');
+      var combined = new Uint8Array(totalBytes);
       var offset = 0;
       for (var pi = 0; pi < parts.length; pi++) {
         combined.set(new Uint8Array(parts[pi]), offset);
@@ -147,8 +164,7 @@
       return canvas;
     })(),
     setStatus: function(text) {
-      var loading = document.getElementById('loading');
-      if (loading) loading.textContent = text;
+      setLoadingText(text);
     },
     totalDependencies: 0,
     monitorRunDependencies: function(left) {
