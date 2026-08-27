@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Granny</title>
+    <script>
+      var JSDELIVR_USER = "susybakaboiii";
+      var JSDELIVR_REPO  = "Granny";
+
+      // Files sit directly at the repo root (UnityLoader.js, granny.json,
+      // granny.data.unityweb.part000, etc) - no Build/ or WebGL1/ subfolder.
+      var JSDELIVR_PATH = "";
+
+      // Used only if the live commit lookup below fails (rate limit, offline, etc).
+      // jsDelivr caches branch refs for ~12h, so this is just a safety net.
+      var JSDELIVR_FALLBACK_REF = "main";
+
+      var JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+      var JSDELIVR_BASE = null;
+      var JSDELIVR_ROOT = null;
+
+      // Resolves the LATEST commit SHA on the branch via the GitHub API,
+      // then builds jsDelivr URLs pinned to that exact commit. jsDelivr
+      // caches per-commit URLs forever (a commit is immutable), but this
+      // lookup itself is always fresh -- so the moment you push new files,
+      // the next page load automatically picks them up with no manual
+      // cache purge and no waiting out jsDelivr's branch cache window.
+      window.jsdelivrReady = (async function resolveLatestRef() {
+        try {
+          var resp = await fetch(
+            "https://api.github.com/repos/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+            "/commits/" + JSDELIVR_FALLBACK_REF,
+            { headers: { "Accept": "application/vnd.github+json" } }
+          );
+          if (!resp.ok) throw new Error("GitHub API status " + resp.status);
+          var data = await resp.json();
+          if (data && data.sha) {
+            JSDELIVR_REF = data.sha;
+          }
+        } catch (err) {
+          console.warn("Falling back to branch ref '" + JSDELIVR_FALLBACK_REF +
+                        "' (couldn't resolve latest commit):", err);
+          JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+        }
+
+        var subPath = JSDELIVR_PATH.replace(/^\/+|\/+$/g, "");
+        JSDELIVR_BASE =
+          "https://cdn.jsdelivr.net/gh/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+          "@" + JSDELIVR_REF + (subPath ? "/" + subPath : "");
+        JSDELIVR_ROOT = JSDELIVR_BASE; // same thing here, everything's at repo root
+
+        // TemplateData/style.css and favicon are optional - if this repo
+        // doesn't have a TemplateData folder these just 404 silently and the
+        // page falls back to its own inline styles, which is fine.
+        var favicon = document.createElement("link");
+        favicon.rel = "shortcut icon";
+        favicon.href = JSDELIVR_ROOT + "/TemplateData/favicon.ico";
+        document.head.appendChild(favicon);
+
+        var stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = JSDELIVR_ROOT + "/TemplateData/style.css";
+        document.head.appendChild(stylesheet);
+
+        return JSDELIVR_BASE;
+      })();
+    </script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #111;
+      }
+      /* The classic UnityLoader builds its own <canvas> inside #unity-container
+         at instantiate() time, so we can't target it by a fixed #unity-canvas
+         id - style any canvas that ends up inside the container instead. */
+      #unity-container, #unity-container canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        display: block;
+      }
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+
+      #boot-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: transparent;
+        color: #e8e8e8;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+        font: 14px 'Comic Sans MS', 'Comic Sans', cursive;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+      }
+      #boot-overlay.hidden { display: none; }
+
+      #boot-title {
+        font-size: 20px;
+        letter-spacing: 1px;
+        opacity: 0.9;
+        margin-bottom: 4px;
+      }
+
+      #boot-log {
+        width: min(480px, 90vw);
+        max-height: 45vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: #333 transparent;
+      }
+      #boot-log::-webkit-scrollbar { width: 4px; }
+      #boot-log::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+      .log-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0.55;
+        transition: opacity 0.15s;
+      }
+      .log-line.pending { opacity: 1; }
+      .log-line.error { opacity: 1; color: #ff6b6b; }
+      .log-line.done { opacity: 0.45; }
+
+      .log-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .log-pct {
+        min-width: 42px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .log-size {
+        min-width: 58px;
+        text-align: right;
+        opacity: 0.7;
+        font-size: 13px;
+      }
+
+      /* Error banner lives outside #unity-container (which gets wiped and
+         rebuilt by UnityLoader), so it survives the whole page lifetime. */
+      #unity-warning {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 9998;
+      }
+      #unity-warning:empty { display: none; }
+    </style>
+  </head>
+  <body>
+    <div id="boot-overlay">
+      <div id="boot-title">Granny</div>
+      <div id="boot-log"></div>
+    </div>
+
+    <div id="unity-warning"></div>
+
+    <!-- Left empty on purpose: UnityLoader.instantiate() builds its own
+         canvas inside this container. Anything we put here up front would
+         either be duplicated or wiped out right before instantiate() runs. -->
+    <div id="unity-container"></div>
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var warningBanner = document.querySelector("#unity-warning");
+      var unityInstanceRef = null;
+
+      var bootOverlay = document.querySelector("#boot-overlay");
+      var bootLog = document.querySelector("#boot-log");
+
+      var logLines = {};
+
+      function shouldLog(key) {
+        return key.indexOf(".unityweb") !== -1;
+      }
+
+      function logStart(key) {
+        if (!shouldLog(key)) return;
+        var line = document.createElement("div");
+        line.className = "log-line pending";
+        line.innerHTML =
+          '<span class="log-name"></span>' +
+          '<span class="log-pct">0%</span>' +
+          '<span class="log-size"></span>';
+        line.querySelector(".log-name").textContent = key;
+        bootLog.appendChild(line);
+        logLines[key] = {
+          el: line,
+          pctEl: line.querySelector(".log-pct"),
+          sizeEl: line.querySelector(".log-size")
+        };
+        bootLog.scrollTop = bootLog.scrollHeight;
+      }
+
+      function logProgress(key, frac) {
+        var entry = logLines[key];
+        if (!entry) return;
+        var p = Math.round(Math.min(frac, 1) * 100);
+        entry.pctEl.textContent = p + "%";
+      }
+
+      function logDone(key, bytes) {
+        if (!shouldLog(key)) return;
+        var entry = logLines[key];
+        if (!entry) return;
+        entry.el.className = "log-line done";
+        entry.pctEl.textContent = "100%";
+        if (typeof bytes === "number") {
+          entry.sizeEl.textContent = formatBytes(bytes);
+        }
+        bootLog.scrollTop = bootLog.scrollHeight;
+      }
+
+      function logError(key) {
+        if (!shouldLog(key)) return;
+        var entry = logLines[key];
+        if (!entry) return;
+        entry.el.className = "log-line error";
+        entry.pctEl.textContent = "fail";
+        entry.sizeEl.textContent = "";
+      }
+
+      function formatBytes(n) {
+        if (n >= 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
+        if (n >= 1024) return (n / 1024).toFixed(0) + " KB";
+        return n + " B";
+      }
+
+      document.addEventListener("click", function() {
+        if (unityInstanceRef && !document.fullscreenElement) {
+          unityInstanceRef.SetFullscreen(1);
+        }
+      });
+
+      document.addEventListener("contextmenu", function(e) { e.preventDefault(); });
+      document.addEventListener("dragstart", function(e) { e.preventDefault(); });
+
+      document.addEventListener("keydown", function(e) {
+        var k = e.key;
+        var kl = (k || "").toLowerCase();
+        var ctrlOrCmd = e.ctrlKey || e.metaKey;
+
+        var blocked =
+          k === "F11" || k === "F5" || k === "F12" ||
+          (ctrlOrCmd && kl === "w") ||
+          (ctrlOrCmd && kl === "t") ||
+          (ctrlOrCmd && kl === "n") ||
+          (ctrlOrCmd && kl === "p") ||
+          (ctrlOrCmd && kl === "s") ||
+          (ctrlOrCmd && kl === "u") ||
+          (ctrlOrCmd && e.shiftKey && kl === "i") ||
+          (ctrlOrCmd && e.shiftKey && kl === "j") ||
+          (ctrlOrCmd && e.shiftKey && kl === "c") ||
+          (ctrlOrCmd && kl === "a") ||
+          (ctrlOrCmd && (k === "+" || k === "-" || k === "=")) ||
+          (e.altKey && k === "ArrowLeft") ||
+          (e.altKey && k === "ArrowRight") ||
+          k === "Backspace" && !isTypingTarget(e.target);
+
+        if (blocked) e.preventDefault();
+      });
+
+      function isTypingTarget(el) {
+        var tag = (el && el.tagName || "").toLowerCase();
+        return tag === "input" || tag === "textarea" || (el && el.isContentEditable);
+      }
+
+      window.addEventListener("beforeunload", function(e) {
+        e.preventDefault();
+        e.returnValue = "";
+      });
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      async function fetchParts(baseUrl, name, partCount, totalSize, onProgress) {
+        var buffers = new Array(partCount);
+        var downloaded = 0;
+        var CONCURRENCY = 4;
+
+        async function fetchOnePart(i) {
+          var partName = name + ".part" + String(i).padStart(3, "0");
+          var partUrl = baseUrl + "/" + partName;
+
+          logStart(partName);
+          var attempt = 0;
+          while (true) {
+            try {
+              var resp = await fetch(partUrl);
+              if (!resp.ok) throw new Error("Status " + resp.status + " for " + partUrl);
+              var buf = await resp.arrayBuffer();
+              buffers[i] = buf;
+              downloaded += buf.byteLength;
+              logDone(partName, buf.byteLength);
+              if (onProgress) onProgress(Math.min(downloaded / totalSize, 1));
+              return;
+            } catch (err) {
+              attempt++;
+              if (attempt >= 3) {
+                logError(partName);
+                throw err;
+              }
+            }
+          }
+        }
+
+        var next = 0;
+        async function worker() {
+          while (next < partCount) {
+            var i = next++;
+            await fetchOnePart(i);
+          }
+        }
+
+        var workers = [];
+        for (var w = 0; w < CONCURRENCY; w++) workers.push(worker());
+        await Promise.all(workers);
+
+        return new Blob(buffers);
+      }
+
+      // ---- Repo-specific filenames -------------------------------------
+      // UnityLoader.js + a "<name>.json" build descriptor is the CLASSIC
+      // (pre-2019.2) Unity WebGL export format - a different API from the
+      // modern createUnityInstance()/"<name>.loader.js" loader. It fetches
+      // its own dataUrl/codeUrl/frameworkUrl (as declared inside granny.json)
+      // rather than taking them as a config object, so instead of building a
+      // config like before, we intercept fetch() for the filenames that are
+      // split into parts and transparently hand back the reassembled file.
+      var LOADER_FILENAME = "UnityLoader.js";
+      var CONFIG_FILENAME = "granny.json";
+      var DATA_FILENAME = "granny.data.unityweb";
+      var CODE_FILENAME = "granny.wasm.code.unityweb";
+      var FRAMEWORK_FILENAME = "granny.wasm.framework.unityweb";
+
+      var progressWeights = { data: 0.45, wasm: 0.35, framework: 0.05, instantiate: 0.15 };
+      var progressState = { data: 0, wasm: 0, framework: 0, instantiate: 0 };
+      function updateOverallProgress() {
+        var total =
+          progressState.data * progressWeights.data +
+          progressState.wasm * progressWeights.wasm +
+          progressState.framework * progressWeights.framework +
+          progressState.instantiate * progressWeights.instantiate;
+        // No visible bar element in this template's markup right now - route
+        // through the boot log instead. If you add a <div id="bar"> back,
+        // wire its width up here.
+      }
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+      }
+
+      // Pre-fetches + reassembles a split file (per manifest.json) into a
+      // single Blob. Returns null if the file isn't listed in the manifest -
+      // meaning it's small enough to ship as one piece, so we just let
+      // UnityLoader fetch it from the CDN directly, no interception needed.
+      async function maybeAssemble(buildUrl, filename, manifest, onProgress) {
+        var entry = manifest[filename];
+        if (!entry) return null;
+        return await fetchParts(buildUrl, filename, entry.partCount, entry.totalSize, onProgress);
+      }
+
+      // Patches window.fetch (and XMLHttpRequest, since the classic Unity
+      // WebGL runtime has historically used either depending on version) so
+      // that any request whose URL *ends with* one of our reassembled
+      // filenames gets served from the in-memory Blob instead of hitting the
+      // network again - regardless of what directory prefix granny.json
+      // actually uses internally.
+      function installBlobInterceptor(blobsByFilename) {
+        var filenames = Object.keys(blobsByFilename);
+        if (!filenames.length) return;
+
+        function matchFilename(url) {
+          if (typeof url !== "string") {
+            try { url = url.url; } catch (e) { return null; }
+          }
+          if (typeof url !== "string") return null;
+          var path = url.split("?")[0].split("#")[0];
+          for (var i = 0; i < filenames.length; i++) {
+            if (path.endsWith("/" + filenames[i]) || path === filenames[i]) return filenames[i];
+          }
+          return null;
+        }
+
+        var ORIG_FETCH = window.fetch;
+        window.fetch = function(url, opts) {
+          var m = matchFilename(url);
+          if (m) {
+            return Promise.resolve(new Response(blobsByFilename[m], {
+              status: 200,
+              headers: { "Content-Type": "application/octet-stream" }
+            }));
+          }
+          return ORIG_FETCH.call(this, url, opts);
+        };
+
+        var ORIG_OPEN = XMLHttpRequest.prototype.open;
+        var ORIG_SEND = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function(method, url) {
+          this.__interceptFilename = matchFilename(url);
+          return ORIG_OPEN.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype.send = function(body) {
+          var self = this;
+          var m = this.__interceptFilename;
+          if (m) {
+            blobsByFilename[m].arrayBuffer().then(function(buf) {
+              Object.defineProperty(self, "readyState", { value: 4, configurable: true });
+              Object.defineProperty(self, "status", { value: 200, configurable: true });
+              Object.defineProperty(self, "response", { value: buf, configurable: true });
+              Object.defineProperty(self, "responseType", { value: "arraybuffer", configurable: true });
+              if (self.onreadystatechange) self.onreadystatechange();
+              if (self.onload) self.onload();
+            });
+            return;
+          }
+          return ORIG_SEND.apply(this, arguments);
+        };
+      }
+
+      async function boot() {
+        try {
+          var buildUrl = await window.jsdelivrReady;
+
+          // manifest.json is our own custom file (not part of the Unity
+          // export) listing which large files got split into parts and their
+          // sizes, e.g. {"granny.data.unityweb": {"partCount":3,"totalSize":...}}
+          var manifest = {};
+          try {
+            var manifestResp = await fetch(buildUrl + "/manifest.json");
+            if (manifestResp.ok) manifest = await manifestResp.json();
+            else console.warn("manifest.json missing/unreadable (status " + manifestResp.status + "); assuming no files are split into parts");
+          } catch (err) {
+            console.warn("Couldn't load manifest.json, assuming no files are split into parts:", err);
+          }
+
+          var blobsByFilename = {};
+
+          var [dataBlob, codeBlob, frameworkBlob] = await Promise.all([
+            maybeAssemble(buildUrl, DATA_FILENAME, manifest, function(p) {
+              progressState.data = p; updateOverallProgress();
+            }),
+            maybeAssemble(buildUrl, CODE_FILENAME, manifest, function(p) {
+              progressState.wasm = p; updateOverallProgress();
+            }),
+            maybeAssemble(buildUrl, FRAMEWORK_FILENAME, manifest, function(p) {
+              progressState.framework = p; updateOverallProgress();
+            }),
+          ]);
+          if (dataBlob) blobsByFilename[DATA_FILENAME] = dataBlob;
+          if (codeBlob) blobsByFilename[CODE_FILENAME] = codeBlob;
+          if (frameworkBlob) blobsByFilename[FRAMEWORK_FILENAME] = frameworkBlob;
+
+          installBlobInterceptor(blobsByFilename);
+
+          container.style.background = "";
+
+          var script = document.createElement("script");
+          script.src = buildUrl + "/" + LOADER_FILENAME;
+          script.onload = function() {
+            // Classic API: UnityLoader creates its own canvas inside the
+            // given container id, so leave #unity-container empty going in.
+            var gameInstance = UnityLoader.instantiate(
+              "unity-container",
+              buildUrl + "/" + CONFIG_FILENAME,
+              {
+                onProgress: function(instance, progress) {
+                  unityInstanceRef = instance;
+                  progressState.instantiate = progress;
+                  updateOverallProgress();
+                  if (progress >= 1) {
+                    bootOverlay.classList.add("hidden");
+                  }
+                }
+              }
+            );
+            unityInstanceRef = gameInstance;
+          };
+          script.onerror = function() {
+            throw new Error("Failed to load " + script.src);
+          };
+          document.body.appendChild(script);
+
+        } catch (err) {
+          unityShowBanner("Failed to load game assets: " + err.message, "error");
+          console.error(err);
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
