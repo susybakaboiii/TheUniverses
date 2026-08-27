@@ -50,6 +50,18 @@
       <a href="https://wasm.rip/" target="_blank" rel="noopener">wasm.rip</a>
     </div>
     <script>
+      // Surface any uncaught error on screen instead of leaving the page stuck on
+      // the static "Loading…" text with no clue what went wrong.
+      window.addEventListener("error", function (e) {
+        var m = document.querySelector("#msg");
+        if (m) m.textContent = "Error: " + (e.message || e);
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        var m = document.querySelector("#msg");
+        if (m) m.textContent = "Error: " + (e.reason && e.reason.message ? e.reason.message : e.reason);
+      });
+    </script>
+    <script>
       // Manifest written by make_cdn_bundle.py. Each entry is either a plain file or a
       // list of parts that must be concatenated back together in order.
       var MANIFEST = {
@@ -92,10 +104,18 @@
       // fetches LevelBundles from the CDN too instead of from wherever the page is hosted.
       var CDN_BASE = "https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@main";
       if (CDN_BASE) {
-        var u = new URL(window.location.href);
-        if (u.searchParams.get("cdn") !== CDN_BASE) {
-          u.searchParams.set("cdn", CDN_BASE);
-          history.replaceState(null, "", u.toString());
+        // Wrapped in try/catch: history.replaceState throws SecurityError in some
+        // sandboxed/embedded contexts (iframes, file:// pages), which used to kill
+        // this whole script before the loader below ever ran — leaving the page
+        // stuck on the static "Loading…" text with no clue why.
+        try {
+          var u = new URL(window.location.href);
+          if (u.searchParams.get("cdn") !== CDN_BASE) {
+            u.searchParams.set("cdn", CDN_BASE);
+            history.replaceState(null, "", u.toString());
+          }
+        } catch (e) {
+          console.warn("cdn param stamp skipped:", e);
         }
       }
 
