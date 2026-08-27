@@ -241,7 +241,18 @@
           updateBannerVisibility();
         }
 
-        var buildUrl = "Build";
+        // Resolve everything to fully-qualified absolute URLs up front, using
+        // document.baseURI (which reflects the explicit <base href> at the top
+        // of this file, regardless of the page's actual location). Unity's own
+        // loader.js does some of its own URL resolution internally using
+        // location.href instead of the <base> tag, and when this page is
+        // embedded via iframe.srcdoc (e.g. The Universe's game browser),
+        // location.href is the opaque "about:srcdoc" — not a valid base for
+        // resolving a relative path — which makes loader.js throw "Failed to
+        // construct 'URL': Invalid URL" right as it starts up. Handing it
+        // already-absolute strings sidesteps that: new URL() ignores the base
+        // entirely once the input already parses as a standalone absolute URL.
+        var buildUrl = new URL("Build", document.baseURI).href;
         var loaderUrl = buildUrl + "/CheeseRollingWeb.loader.js";
         var config = {
           dataUrl:
@@ -251,7 +262,7 @@
           codeUrl:
             assembledBlobs["Build/CheeseRollingWeb.wasm"] ||
             buildUrl + "/CheeseRollingWeb.wasm",
-          streamingAssetsUrl: "StreamingAssets",
+          streamingAssetsUrl: new URL("StreamingAssets", document.baseURI).href,
           companyName: "The Interviewed",
           productName: "CheeseRolling",
           productVersion: "v1.5.1",
