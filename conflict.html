@@ -212,7 +212,19 @@
     });
   }
 
-  var buildUrl = "Build";
+  // Resolved to a fully-qualified absolute URL up front, using
+  // document.baseURI (which reflects the explicit <base href> at the top of
+  // this file, regardless of the page's actual location). Unity's own
+  // loader.js does some of its own URL resolution internally using
+  // location.href instead of the <base> tag, and when this page is embedded
+  // via iframe.srcdoc (e.g. The Universe's game browser), location.href is
+  // the opaque "about:srcdoc" - not a valid base for resolving a relative
+  // path - which makes loader.js throw "Failed to construct 'URL': Invalid
+  // URL" right as createUnityInstance starts up. dataUrl/codeUrl are already
+  // safe since URL.createObjectURL() always returns an absolute blob: URL;
+  // frameworkUrl and streamingAssetsUrl were the two still-relative strings
+  // tripping it.
+  var buildUrl = new URL("Build", document.baseURI).href;
   var loaderUrl = buildUrl + "/AgesOfConflict.loader.js";
 
   var wasmLoaded = 0,
@@ -228,10 +240,16 @@
     var totalLoaded = wasmLoaded + dataLoaded;
     var totalKnown = wasmTotal + dataTotal;
     if (totalKnown > 0) {
-      setLoadingBar(totalLoaded / totalKnown);
+      // Content-Length reflects the compressed transfer size when the CDN
+      // gzips the response, but reader.read() hands back decoded bytes -
+      // so totalLoaded can end up bigger than totalKnown once decompression
+      // kicks in. Clamp the displayed fraction so it never overshoots 100%;
+      // totalLoaded itself (the MB figure) is still the real count.
+      var frac = Math.min(totalLoaded / totalKnown, 1);
+      setLoadingBar(frac);
       setLoadingText(
         "Downloading game files... " + formatMB(totalLoaded) + " / " +
-        formatMB(totalKnown) + " (" + Math.floor((totalLoaded / totalKnown) * 100) + "%)"
+        formatMB(Math.max(totalKnown, totalLoaded)) + " (" + Math.floor(frac * 100) + "%)"
       );
     } else {
       // sizes not known yet (first response headers haven't landed) - just
@@ -281,7 +299,7 @@
                 codeUrl: URL.createObjectURL(
                         new Blob([wasmBuffer], { type: "application/wasm" }),
                 ),
-                streamingAssetsUrl: "StreamingAssets",
+                streamingAssetsUrl: new URL("StreamingAssets", document.baseURI).href,
                 companyName: "JoySparkGames",
                 productName: "Ages of Conflict",
                 productVersion: "4.4.0",
