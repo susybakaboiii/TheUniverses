@@ -7,6 +7,10 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge.png"
   },
+  "Poly Bridge 2": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge2.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge2.png"
+  },
   "Riddy Stream": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/riddystream.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/riddystream.png",
@@ -40,9 +44,9 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/gta3.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/gta3.png"
   },
-  "Cluster Truck": {
-    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/clustertruck.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/clustertruck.png"
+  "Aviassembly": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/avi.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/avi.png"
   },
   "Cheese Rolling": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/Cheese2.html",
