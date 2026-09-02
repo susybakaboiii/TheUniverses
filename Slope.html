@@ -74,6 +74,40 @@
     <script src="TemplateData/UnityProgress.js"></script>
     <script src="Build/UnityLoader.js"></script>
     <script>
+        // UnityLoader.js (the shared, third-party loader from Build/UnityLoader.js)
+        // does not recognize blob: URLs as already-absolute - it naively glues its
+        // own build-path prefix onto whatever URL it is given, as if it were a plain
+        // relative filename. Since our merged data/json blobs ARE already-absolute
+        // blob: URLs, that turns into a broken request like
+        // "https://.../198/blob:null/<uuid>" (a 403, since that path does not exist),
+        // which then cascades into a decompression crash once it tries to process the
+        // error page body as if it were real compressed game data. We cannot safely
+        // patch UnityLoader.js itself (shared third-party script), so instead recover
+        // the real blob: URL out of the mangled request before it goes out, for both
+        // XMLHttpRequest (what the stack trace shows UnityLoader actually using) and
+        // fetch (in case a different code path uses that instead).
+        (function () {
+            function recoverBlobUrl(url) {
+                if (typeof url !== "string" || url.indexOf("blob:") !== 0) {
+                    var m = typeof url === "string" ? url.match(/blob:.*/) : null;
+                    if (m) return m[0];
+                }
+                return url;
+            }
+
+            var ORIG_OPEN = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url) {
+                var args = Array.prototype.slice.call(arguments);
+                args[1] = recoverBlobUrl(url);
+                return ORIG_OPEN.apply(this, args);
+            };
+
+            var ORIG_FETCH = window.fetch;
+            window.fetch = function (url, opts) {
+                return ORIG_FETCH.call(this, recoverBlobUrl(url), opts);
+            };
+        })();
+
         function mergeFiles(fileParts) {
             return new Promise((resolve, reject) => {
                 let buffers = [];
