@@ -5,6 +5,28 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | Poly Bridge 2</title>
     <script>
+      // Chromium blocks IndexedDB inside sandboxed srcdoc iframes even with
+      // allow-same-origin (about:srcdoc has no real resource URL to
+      // partition storage against). Unity's persistent-storage layer
+      // (used for save state / PlayerPrefs) doesn't handle that failure
+      // gracefully here - it retries the same failed IndexedDB open forever,
+      // which is what caused the repeating "Unsupported game state: INVALID"
+      // / NullReferenceException loop.
+      //
+      // Hiding indexedDB before Unity's code ever runs makes it look like a
+      // browser with no IndexedDB support at all, which Unity DOES handle
+      // gracefully - it just falls back to an in-memory filesystem instead.
+      // Trade-off: no save data persists between page loads/sessions, but
+      // the game actually boots instead of looping forever.
+      (function () {
+        try { Object.defineProperty(window, "indexedDB", { value: undefined, configurable: true }); }
+        catch (e) { try { window.indexedDB = undefined; } catch (e2) {} }
+        ["webkitIndexedDB", "mozIndexedDB", "msIndexedDB", "OIndexedDB"].forEach(function (k) {
+          try { window[k] = undefined; } catch (e) {}
+        });
+      })();
+    </script>
+    <script>
       var JSDELIVR_USER = "sussyahhblud";
       var JSDELIVR_REPO  = "Poly-Bridge-WebGL";
 
