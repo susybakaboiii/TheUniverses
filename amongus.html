@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Among Us</title>
+    <script>
+      var JSDELIVR_USER = "wasmdotrip";
+      var JSDELIVR_REPO  = "wasm.rip";
+
+      // Build files live directly in this folder (UnityLoader.js,
+      // <name>.json, .data.unityweb, .wasm.code.unityweb,
+      // .wasm.framework.unityweb) - no further Build/ nesting inside it.
+      var GAME_DIR = "files/amongus/legacy";
+      var BUILD_SUBDIR = "Build";
+
+      var BUILD_NAME = "AmongUSWebPortByTSProllyFinalBuild9";
+
+      // Used only if the live commit lookup below fails (rate limit, offline, etc).
+      // jsDelivr caches branch refs for ~12h, so this is just a safety net.
+      var JSDELIVR_FALLBACK_REF = "main";
+
+      var JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+      var JSDELIVR_ROOT = null;   // GAME_DIR base - TemplateData/style.css & favicon live here
+      var JSDELIVR_BUILD = null; // Build/ subfolder - loader.js, json, data, wasm, framework
+
+      // Resolves the LATEST commit SHA on the branch via the GitHub API, then
+      // builds jsDelivr URLs pinned to that exact commit. jsDelivr caches
+      // per-commit URLs forever (a commit is immutable), but this lookup
+      // itself is always fresh - so the moment new files get pushed, the
+      // next page load automatically picks them up with no manual cache
+      // purge and no waiting out jsDelivr's branch cache window.
+      window.jsdelivrReady = (async function resolveLatestRef() {
+        try {
+          var resp = await fetch(
+            "https://api.github.com/repos/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+            "/commits/" + JSDELIVR_FALLBACK_REF,
+            { headers: { "Accept": "application/vnd.github+json" } }
+          );
+          if (!resp.ok) throw new Error("GitHub API status " + resp.status);
+          var data = await resp.json();
+          if (data && data.sha) {
+            JSDELIVR_REF = data.sha;
+          }
+        } catch (err) {
+          console.warn("Falling back to branch ref '" + JSDELIVR_FALLBACK_REF +
+                        "' (couldn't resolve latest commit):", err);
+          JSDELIVR_REF = JSDELIVR_FALLBACK_REF;
+        }
+
+        JSDELIVR_ROOT =
+          "https://cdn.jsdelivr.net/gh/" + JSDELIVR_USER + "/" + JSDELIVR_REPO +
+          "@" + JSDELIVR_REF + "/" + GAME_DIR;
+        JSDELIVR_BUILD = JSDELIVR_ROOT + "/" + BUILD_SUBDIR;
+
+        // Optional - only applies if this game dir actually has a
+        // TemplateData folder alongside Build/. Silently 404s and falls
+        // back to the inline styles below if it doesn't.
+        var favicon = document.createElement("link");
+        favicon.rel = "shortcut icon";
+        favicon.href = JSDELIVR_ROOT + "/TemplateData/favicon.ico";
+        document.head.appendChild(favicon);
+
+        var stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = JSDELIVR_ROOT + "/TemplateData/style.css";
+        document.head.appendChild(stylesheet);
+
+        return JSDELIVR_BUILD;
+      })();
+    </script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background: #0b0b0f;
+      }
+      /* Classic UnityLoader.instantiate() builds its own <canvas> inside
+         #unity-container, so style any canvas that ends up inside it. */
+      #unity-container, #unity-container canvas {
+        width: 100vw !important;
+        height: 100vh !important;
+        display: block;
+      }
+      * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #0b0b0f;
+        color: #fff;
+        font: 14px monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: opacity 0.4s ease;
+      }
+      #loading.hidden { opacity: 0; pointer-events: none; }
+      #msg { text-align: center; }
+      #bar {
+        width: 320px;
+        height: 12px;
+        border: 1px solid #555;
+        display: none;
+      }
+      #barfill {
+        width: 0%;
+        height: 100%;
+        background: #7cc242;
+      }
+
+      #unity-warning {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 10000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div id="msg">Loading...</div>
+      <div id="bar"><div id="barfill"></div></div>
+    </div>
+
+    <div id="unity-warning"></div>
+
+    <!-- Left empty on purpose: UnityLoader.instantiate() builds its own
+         canvas inside this container. -->
+    <div id="unity-container"></div>
+
+    <script>
+      var warningBanner = document.querySelector("#unity-warning");
+      var loadingScreen = document.querySelector("#loading");
+      var unityInstanceRef = null;
+
+      function setLoadingText(text) {
+        var m = document.getElementById("msg");
+        if (m) m.textContent = text;
+      }
+      function setLoadingBar(pct) {
+        var bar = document.getElementById("bar");
+        var fill = document.getElementById("barfill");
+        if (!bar || !fill) return;
+        if (pct === null || pct === undefined) {
+          bar.style.display = "none";
+          return;
+        }
+        bar.style.display = "block";
+        fill.style.width = (Math.max(0, Math.min(1, pct)) * 100).toFixed(1) + "%";
+      }
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? "block" : "none";
+        }
+        var div = document.createElement("div");
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == "error") div.style = "background: red; padding: 10px;";
+        else {
+          if (type == "warning") div.style = "background: yellow; padding: 10px;";
+          setTimeout(function () {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement("meta");
+        meta.name = "viewport";
+        meta.content = "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+        document.getElementsByTagName("head")[0].appendChild(meta);
+      }
+
+      async function boot() {
+        try {
+          var buildUrl = await window.jsdelivrReady;
+
+          var script = document.createElement("script");
+          script.src = buildUrl + "/UnityLoader.js";
+          script.onload = function () {
+            var gameInstance = UnityLoader.instantiate(
+              "unity-container",
+              buildUrl + "/" + BUILD_NAME + ".json",
+              {
+                onProgress: function (instance, progress) {
+                  unityInstanceRef = instance;
+                  setLoadingBar(progress);
+                  setLoadingText("Loading... " + Math.round(progress * 100) + "%");
+                  if (progress >= 1) {
+                    loadingScreen.classList.add("hidden");
+                  }
+                }
+              }
+            );
+            unityInstanceRef = gameInstance;
+          };
+          script.onerror = function () {
+            setLoadingText("Failed to load UnityLoader.js");
+          };
+          document.body.appendChild(script);
+        } catch (err) {
+          setLoadingText("Failed to load: " + err.message);
+          unityShowBanner("Failed to load game assets: " + err.message, "error");
+          console.error(err);
+        }
+      }
+
+      boot();
+    </script>
+  </body>
+</html>
