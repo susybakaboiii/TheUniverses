@@ -475,9 +475,16 @@
               fullscreenButton.onclick = () => {
                 unityInstance.SetFullscreen(1);
               };
-              if (config.dataUrl.startsWith("blob:")) URL.revokeObjectURL(config.dataUrl);
-              if (config.codeUrl.startsWith("blob:")) URL.revokeObjectURL(config.codeUrl);
-              if (config.frameworkUrl.startsWith("blob:")) URL.revokeObjectURL(config.frameworkUrl);
+              // NOTE: deliberately NOT calling URL.revokeObjectURL() on
+              // config.dataUrl/codeUrl/frameworkUrl here. Unity's runtime
+              // keeps reading from these blob URLs well after startup - for
+              // Poly Bridge specifically, its level/game-state loader goes
+              // back to the data blob whenever it loads a level or
+              // checkpoint. Revoking them the instant createUnityInstance
+              // first resolves invalidates the blob out from under those
+              // later reads, which is what was causing the repeating
+              // "Unsupported game state: INVALID" / NullReferenceException
+              // spam - Unity kept retrying the same now-dead blob URL.
 
               unityInstance.SetFullscreen(1);
             }).catch((message) => {
