@@ -32,6 +32,10 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/newslope.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/Slope.png"
   },
+  "Angry Birds": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/angrybirds.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/angrybirds.png"
+  },
   "Arctic": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/arctic.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/arctic.png"
@@ -59,6 +63,10 @@
   "Aviassembly": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/avi2.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/avi.png"
+  },
+  "2048": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/2048.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/2048.png"
   },
   "Cheese Rolling": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/Cheese2.html",
