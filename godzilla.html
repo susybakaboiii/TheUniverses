@@ -1,0 +1,262 @@
+\
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>SWF Parts Player</title>
+
+      <!--
+        Ruffle is self-hosted from your GitHub repository through jsDelivr.
+        Make sure the complete Ruffle Website Package is in:
+          /ruffle/
+      -->
+      <script>
+        const RUFFLE_PATH =
+          "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ruffle/";
+
+        window.RufflePlayer = window.RufflePlayer || {};
+        window.RufflePlayer.config = {
+          publicPath: RUFFLE_PATH
+        };
+      </script>
+      <script src="https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ruffle/ruffle.js"></script>
+
+      <style>
+        * { box-sizing: border-box; }
+        html, body { width:100%; height:100%; margin:0; }
+        body {
+          background:#111214;
+          color:#eee;
+          font:14px system-ui, -apple-system, sans-serif;
+          overflow:hidden;
+        }
+        #bar {
+          height:52px;
+          display:flex;
+          align-items:center;
+          gap:10px;
+          padding:8px 12px;
+          background:#141619;
+          border-bottom:1px solid #2c3036;
+        }
+        #status {
+          min-width:0;
+          flex:1;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+          color:#9aa0aa;
+          text-align:left;
+        }
+        button {
+          font:inherit;
+          font-size:13px;
+          color:#eee;
+          background:#26292e;
+          border:1px solid #383c43;
+          border-radius:7px;
+          padding:7px 11px;
+          cursor:pointer;
+        }
+        button:hover { border-color:#5a606b; }
+        button:disabled { opacity:.5; cursor:default; }
+        #stage {
+          position:absolute;
+          left:0; right:0; top:0; bottom:0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+          background:#000;
+        }
+        #player {
+          width:100%;
+          height:100%;
+          min-width:0;
+          min-height:0;
+        }
+        #player ruffle-player {
+          width:100%;
+          height:100%;
+          display:block;
+        }
+        #overlay {
+          position:absolute;
+          inset:0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:20px;
+          text-align:center;
+          color:#9aa0aa;
+          background:rgba(0,0,0,.45);
+          pointer-events:none;
+        }
+        #overlay.hidden { display:none; }
+        code { color:#c8ccd4; }
+      </style>
+    </head>
+    <body>
+</div>
+
+      <div id="stage">
+        <div id="player"></div>
+        <div id="overlay">Downloading 0/4 parts...</div>
+      </div>
+
+      <script>
+        /*
+         * ================================================================
+         * CONFIGURATION
+         * ================================================================
+         *
+         * After uploading the generated .part001, .part002, ... files to
+         * GitHub, put their raw jsDelivr URLs here in EXACT order.
+         *
+         * Example:
+         * const PART_URLS = [
+         *   "https://cdn.jsdelivr.net/gh/YOU/REPO@main/games/game.part001",
+         *   "https://cdn.jsdelivr.net/gh/YOU/REPO@main/games/game.part002",
+         *   "https://cdn.jsdelivr.net/gh/YOU/REPO@main/games/game.part003"
+         * ];
+         */
+        const PART_URLS = [
+          "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/godzilla/Godzilla.part001",
+          "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/godzilla/Godzilla.part002",
+          "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/godzilla/Godzilla.part003",
+          "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/godzilla/Godzilla.part004"
+        ];
+
+        const SWF_NAME = "Godzilla.swf";
+
+        /*
+         * Optional: if the SWF itself expects relative URLs for external
+         * assets, set BASE_URL to the directory those assets live in.
+         * Otherwise leave this null and the player uses the first part URL's
+         * directory as a reasonable default.
+         */
+        const BASE_URL = null;
+
+        /*
+         * Ruffle can load a URL or data. We reconstruct the original bytes
+         * into one Blob URL and then tell Ruffle to load that Blob. This keeps
+         * the chunking completely transparent to the Flash movie.
+         */
+        const $ = id => document.getElementById(id);
+const overlay = $("overlay");
+        const playerHost = $("player");
+
+        let player = null;
+        let blobUrl = null;
+
+        function setStatus(text) {
+          overlay.textContent = text;
+        }
+
+        function defaultBaseUrl(url) {
+          try {
+            return new URL("./", url).href;
+          } catch {
+            return null;
+          }
+        }
+
+        async function fetchPart(url, index, total) {
+          setStatus(`Downloading ${index}/${total} parts...`);
+
+          const response = await fetch(url, {
+            cache: "no-store",
+            mode: "cors"
+          });
+
+          if (!response.ok) {
+            throw new Error(
+              `Part ${index}/${total} failed: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const buffer = await response.arrayBuffer();
+
+          if (!buffer.byteLength) {
+            throw new Error(`Part ${index}/${total} is empty.`);
+          }
+
+          return new Uint8Array(buffer);
+        }
+
+        async function buildSwf() {
+          if (!Array.isArray(PART_URLS) || PART_URLS.length === 0) {
+            throw new Error("No SWF parts are configured.");
+          }
+
+          const chunks = [];
+
+          for (let i = 0; i < PART_URLS.length; i++) {
+            const chunk = await fetchPart(
+              PART_URLS[i],
+              i + 1,
+              PART_URLS.length
+            );
+            chunks.push(chunk);
+          }
+
+          setStatus("Starting Flash player...");
+
+          const blob = new Blob(chunks, {
+            type: "application/x-shockwave-flash"
+          });
+
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          blobUrl = URL.createObjectURL(blob);
+
+          return blobUrl;
+        }
+
+        async function loadSwf() {
+          try {
+            setStatus(`Downloading 1/${PART_URLS.length} parts...`);
+
+            const movieUrl = await buildSwf();
+
+            if (!window.RufflePlayer) {
+              throw new Error(
+                "Ruffle did not load. Check the self-hosted Ruffle files."
+              );
+            }
+
+            const ruffle = window.RufflePlayer.newest();
+            player = ruffle.createPlayer();
+            player.style.width = "100%";
+            player.style.height = "100%";
+            player.style.display = "block";
+            playerHost.replaceChildren(player);
+
+            const base = BASE_URL || defaultBaseUrl(PART_URLS[0]);
+
+            await player.ruffle().load({
+              url: movieUrl,
+              base: base,
+              allowScriptAccess: false,
+              compatibilityRules: true,
+              upgradeToHttps: true,
+              showSwfDownload: false,
+              splashScreen: true
+            });
+
+            overlay.classList.add("hidden");
+          } catch (err) {
+            console.error(err);
+            setStatus("Failed to load SWF: " + (err?.message || err));
+            overlay.classList.remove("hidden");
+          }
+        }
+
+        window.addEventListener("beforeunload", () => {
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+        });
+
+        loadSwf();
+      </script>
+    </body>
+    </html>
