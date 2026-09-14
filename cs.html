@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>yikes!</title>
+    <title>Counter-Strike: Source</title>
     <style>body {
   font-family: arial;
   margin: 0;
@@ -123,24 +123,26 @@ canvas.emscripten { border: 0px none; background-color: black; }
 		}
 
 		/* Left-aligned and inline, as the stock shell had it -- the block plus
-		   auto margins is what centred it. Height follows the width so the
-		   1155x1000 source is not squashed. */
+		   auto margins is what centred it. The CS:S logo is 769x119, so it is
+		   sized by height; HL2's 110px width would leave it 17px tall. */
 		body #emscripten_logo {
-			width: 110px;
-			height: auto;
+			height: 44px;
+			width: auto;
 			display: inline-block;
 			margin: 0;
 			padding: 6px;
 		}
 
-		/* Orange palette. The blue was never ours -- it is the browser default
-		   for <progress> and for links, so both need explicit rules. */
-		:root { --hl2-orange: #ff8a1e; --hl2-orange-dim: #7a3f0a; }
+		/* CS:S palette, taken from the game's own resource/clientscheme.res:
+		   "Orange" 255 176 0 is the HUD and buy-menu amber, and "OrangeDim" is
+		   that amber at 120/255 alpha. The blue was never ours -- it is the
+		   browser default for <progress> and for links, so both need rules. */
+		:root { --cs-orange: #ffb000; --cs-orange-dim: rgba(255, 176, 0, 0.47); }
 
-		body a { color: var(--hl2-orange); }
+		body a { color: var(--cs-orange); }
 
 		#status {
-			color: var(--hl2-orange);
+			color: var(--cs-orange);
 			font-family: system-ui, sans-serif;
 			text-align: center;
 		}
@@ -149,16 +151,16 @@ canvas.emscripten { border: 0px none; background-color: black; }
 
 		/* Spinner: orange leading edge on a dim ring. */
 		body .spinner {
-			border-left-color: var(--hl2-orange-dim) !important;
-			border-right-color: var(--hl2-orange-dim) !important;
-			border-bottom-color: var(--hl2-orange-dim) !important;
-			border-top-color: var(--hl2-orange) !important;
+			border-left-color: var(--cs-orange-dim) !important;
+			border-right-color: var(--cs-orange-dim) !important;
+			border-bottom-color: var(--cs-orange-dim) !important;
+			border-top-color: var(--cs-orange) !important;
 			background-color: transparent !important;
 		}
 	</style>
   </head>
   <body>
-    <img id="emscripten_logo" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v3/assets/hl2.png" alt="Half-Life 2">
+    <img id="emscripten_logo" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v5/assets/cs-s-logo.png" alt="Counter-Strike: Source">
 
     <div class="spinner" id='spinner'></div>
     <div class="emscripten" id="status">Downloading...</div>
@@ -311,7 +313,7 @@ canvas.emscripten { border: 0px none; background-color: black; }
         };
       };
     </script>
-    <script>window.CS_FILES_BASE = "https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v3/";</script>
-    <script async crossorigin="anonymous" type="text/javascript" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v3/cs_launcher.js"></script>
+    <script>window.CS_FILES_BASE = "https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v5/";</script>
+    <script async crossorigin="anonymous" type="text/javascript" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v5/cs_launcher.js"></script>
   </body>
 </html>
