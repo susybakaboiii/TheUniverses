@@ -1,4 +1,4 @@
-!DOCTYPE HTML>
+<!DOCTYPE HTML>
 <html lang="en-us">
   <head>
     <meta charset="utf-8">
@@ -141,6 +141,38 @@ canvas.emscripten { border: 0px none; background-color: black; }
 
 		body a { color: var(--cs-orange); }
 
+		#controls input[type=text] {
+			width: 12em;
+			margin-left: 0.5em;
+		}
+		#controls label {
+			color: var(--cs-orange);
+			font-family: system-ui, sans-serif;
+			margin-left: 1em;
+		}
+
+		#namePrompt {
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.85);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 10;
+			font-family: system-ui, sans-serif;
+		}
+		/* display:flex above would otherwise beat the hidden attribute. */
+		#namePrompt[hidden] { display: none; }
+		#namePrompt form {
+			background: #1a1a1a;
+			border: 1px solid var(--cs-orange-dim);
+			padding: 1.5em 2em;
+			text-align: center;
+		}
+		#namePrompt h2 { color: var(--cs-orange); margin: 0 0 0.8em; font-weight: 600; }
+		#namePrompt input[type=text] { font-size: 1.1em; width: 14em; padding: 0.3em; }
+		#namePrompt input[type=submit] { font-size: 1.1em; margin-left: 0.5em; }
+
 		#status {
 			color: var(--cs-orange);
 			font-family: system-ui, sans-serif;
@@ -160,13 +192,21 @@ canvas.emscripten { border: 0px none; background-color: black; }
 	</style>
   </head>
   <body>
-    <img id="emscripten_logo" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v8/assets/cs-s-logo.png" alt="Counter-Strike: Source">
+    <div id="namePrompt" hidden>
+      <form>
+        <h2>Pick a name</h2>
+        <input type="text" id="namePromptInput" maxlength="31" placeholder="your name" spellcheck="false" required>
+        <input type="submit" value="Play">
+      </form>
+    </div>
+    <img id="emscripten_logo" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v10/assets/cs-s-logo.png" alt="Counter-Strike: Source">
 
     <div class="spinner" id='spinner'></div>
     <div class="emscripten" id="status">Downloading...</div>
 
     <span id='controls'>
       <span><input type="button" value="Fullscreen" onclick="goFullscreen()"></span>
+      <label for="playerName">Name</label><input type="text" id="playerName" maxlength="31" placeholder="your name" spellcheck="false">
     </span>
 
     <div class="emscripten">
@@ -179,6 +219,17 @@ canvas.emscripten { border: 0px none; background-color: black; }
     <textarea id="output" rows="8"></textarea>
 
     <script type='text/javascript'>
+      // Keys typed into the page's own inputs (the Name box, the name prompt)
+      // belong to them. SDL listens on window in the capture phase and cancels
+      // most keys, so letters never reached the box. Same target, same phase,
+      // registered before the game loads: this runs first and keeps SDL out.
+      ['keydown', 'keypress', 'keyup'].forEach(function (type) {
+        window.addEventListener(type, function (e) {
+          var t = e.target;
+          if (t && t.tagName === 'INPUT' && t.type === 'text') e.stopImmediatePropagation();
+        }, true);
+      });
+
       // Fullscreen, via the DOM only.
       //
       // NEVER touch Module.requestFullscreen here. It is not in
@@ -241,6 +292,44 @@ canvas.emscripten { border: 0px none; background-color: black; }
         }
       });
 
+      // Player name. Multiplayer has no Steam name, so without this everyone is
+      // "unnamed". Saved in this browser; pre.js passes it on the command line,
+      // and a change while playing is sent to the engine as a name command.
+      (function () {
+        var box = document.getElementById('playerName');
+        if (!box) return;
+        var clean = function (s) { return String(s || '').replace(/["';\\\r\n]/g, '').trim().slice(0, 31); };
+        try { box.value = clean(localStorage.getItem('cs_player_name')); } catch (e) {}
+        var apply = function () {
+          var name = clean(box.value);
+          box.value = name;
+          try { localStorage.setItem('cs_player_name', name); } catch (e) {}
+          if (name && window.Module) (Module.csPageCommands = Module.csPageCommands || []).push('name "' + name + '"');
+        };
+        // Used by pre.js: the saved name, and a prompt that holds the game until
+        // a name is given.
+        window.csSavedName = function () { try { return clean(localStorage.getItem('cs_player_name')); } catch (e) { return ''; } };
+        window.csAskName = function (done) {
+          var prompt = document.getElementById('namePrompt');
+          var input = document.getElementById('namePromptInput');
+          prompt.hidden = false;
+          input.focus();
+          input.addEventListener('keydown', function (e) { e.stopPropagation(); });
+          prompt.querySelector('form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var name = clean(input.value);
+            if (!name) return;
+            try { localStorage.setItem('cs_player_name', name); } catch (err) {}
+            box.value = name;
+            prompt.hidden = true;
+            done(name);
+          });
+        };
+        box.addEventListener('change', apply);
+        // Typing in the box must not also move the player.
+        box.addEventListener('keydown', function (e) { e.stopPropagation(); if (e.key === 'Enter') box.blur(); });
+      })();
+
       var statusElement = document.getElementById('status');
       var progressElement = document.getElementById('progress');
       var spinnerElement = document.getElementById('spinner');
@@ -260,6 +349,8 @@ canvas.emscripten { border: 0px none; background-color: black; }
 	  canvasElement.heightNative = screen.availHeight
 
       var Module = {
+        csSavedName: function () { return window.csSavedName ? window.csSavedName() : ''; },
+        csAskName: function (done) { if (window.csAskName) window.csAskName(done); else done('player'); },
         print(...args) {
           console.log(...args);
           // These replacements are necessary if you render to raw HTML
@@ -313,7 +404,7 @@ canvas.emscripten { border: 0px none; background-color: black; }
         };
       };
     </script>
-    <script>window.CS_FILES_BASE = "https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v8/";</script>
-    <script async crossorigin="anonymous" type="text/javascript" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v8/cs_launcher.js"></script>
+    <script>window.CS_FILES_BASE = "https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v10/"; window.CS_RELAY_URL = "wss://tea-kit-merge-two.trycloudflare.com/";</script>
+    <script async crossorigin="anonymous" type="text/javascript" src="https://cdn.jsdelivr.net/gh/sussyahhblud/CS-S@v10/cs_launcher.js"></script>
   </body>
 </html>
