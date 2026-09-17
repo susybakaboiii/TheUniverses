@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Universe</title>
+<title>The Universe - Public</title>
 <style>
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -174,10 +174,11 @@
 
 <div id="home">
   <div id="bar">
-    <div class="logo">The&nbsp;<b>Universe</b></div>
+    <div class="logo">The&nbsp;<b>Universe - Public</b></div>
     <div id="tabs">
       <button class="tab active" data-tab="htmls" type="button">Games</button>
       <button class="tab" data-tab="settings" type="button">Settings</button>
+     <button class="tab" data-tab="htmls" type="button">made by tasdiam</button>
     </div>
     <input id="search" type="search" placeholder="Search Games..." autocomplete="off" spellcheck="false">
   </div>
@@ -188,6 +189,9 @@
 
   <div id="tab-settings" class="tabpanel">
     <div class="settings-wrap">
+     <section>
+        <h2>made by tasdiam</h2>
+      </section>
       <section>
         <h2>Theme</h2>
         <div id="theme-grid"></div>
@@ -249,7 +253,6 @@
     sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock allow-downloads"></iframe>
   <div id="ctl">
     <button id="fs">Fullscreen</button>
-    <button id="dl">Download</button>
     <button id="close" class="close">Close</button>
   </div>
   <div id="busy">Loading…</div>
@@ -261,7 +264,7 @@
    An entry can also be an object for a custom tile:
      "Name": { "url": "...", "image": "...", "desc": "subtitle text" }
    ====================================================================== */
-const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tas3.json";
+const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/public.json";
 /* ===================================================================== */
 
 /* ======================================================================
@@ -272,7 +275,7 @@ const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ta
    malformed JSON all fail OPEN so a GitHub outage doesn't brick this for
    everyone.
    ====================================================================== */
-const STATUS_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/status.json";
+const STATUS_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/public_status.json";
 /* ===================================================================== */
 
 const $ = id => document.getElementById(id);
