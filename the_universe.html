@@ -550,16 +550,6 @@ function closeViewer(){
 /* ---------- controls ---------- */
 $('close').onclick = closeViewer;
 
-$('dl').onclick = () => {
-  if(!current) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([current.html], {type:'text/html'}));
-  a.download = /\.x?html?$/i.test(current.name) ? current.name
-             : current.name.replace(/[^\w.-]+/g, '_') + '.html';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-};
-
 function toggleFullscreen(){
   if(document.fullscreenElement) document.exitFullscreen();
   else if(current) viewer.requestFullscreen().catch(() => {});
