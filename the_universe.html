@@ -178,9 +178,8 @@
     <div id="tabs">
       <button class="tab active" data-tab="htmls" type="button">Games</button>
       <button class="tab" data-tab="settings" type="button">Settings</button>
-     <button class="tab" data-tab="htmls" type="button">made by tasdiam</button>
     </div>
-    <input id="search" type="search" placeholder="Search Games..." autocomplete="off" spellcheck="false">
+    <input id="search" type="search" placeholder="made by tasdiam..." autocomplete="off" spellcheck="false">
   </div>
 
   <div id="tab-htmls" class="tabpanel active">
@@ -192,6 +191,7 @@
      <section>
         <h2>made by tasdiam</h2>
       </section>
+     
       <section>
         <h2>Theme</h2>
         <div id="theme-grid"></div>
@@ -253,6 +253,7 @@
     sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock allow-downloads"></iframe>
   <div id="ctl">
     <button id="fs">Fullscreen</button>
+    <button id="dl">Download</button>
     <button id="close" class="close">Close</button>
   </div>
   <div id="busy">Loading…</div>
@@ -549,6 +550,16 @@ function closeViewer(){
 
 /* ---------- controls ---------- */
 $('close').onclick = closeViewer;
+
+$('dl').onclick = () => {
+  if(!current) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([current.html], {type:'text/html'}));
+  a.download = /\.x?html?$/i.test(current.name) ? current.name
+             : current.name.replace(/[^\w.-]+/g, '_') + '.html';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+};
 
 function toggleFullscreen(){
   if(document.fullscreenElement) document.exitFullscreen();
