@@ -184,6 +184,7 @@
 
   <div id="tab-htmls" class="tabpanel active">
     <div id="grid"></div>
+   <h4>this is a very stripped down version of the universe - tasdiam</h4>
   </div>
 
   <div id="tab-settings" class="tabpanel">
@@ -253,7 +254,6 @@
     sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock allow-downloads"></iframe>
   <div id="ctl">
     <button id="fs">Fullscreen</button>
-    <button id="dl">Download</button>
     <button id="close" class="close">Close</button>
   </div>
   <div id="busy">Loading…</div>
@@ -550,16 +550,6 @@ function closeViewer(){
 
 /* ---------- controls ---------- */
 $('close').onclick = closeViewer;
-
-$('dl').onclick = () => {
-  if(!current) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([current.html], {type:'text/html'}));
-  a.download = /\.x?html?$/i.test(current.name) ? current.name
-             : current.name.replace(/[^\w.-]+/g, '_') + '.html';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
-};
 
 function toggleFullscreen(){
   if(document.fullscreenElement) document.exitFullscreen();
