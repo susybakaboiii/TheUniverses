@@ -1,0 +1,54 @@
+{
+  "Minecraft 1.8.8": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/eager.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/eager.png"
+  },
+  "Poly Bridge": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/pbridge.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/pbridge.png"
+  },
+  "Hussrooms": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/huss.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/huss.png"
+  },
+  "Half Life 1": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/happlelife.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/happlelife.png"
+  },
+  "Godzilla Daikaiju Battle Royale": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/godzilla.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/godzilla.png"
+  },
+  "Slope": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/newslope.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/Slope.png"
+  },
+  "Counter Strike: Source": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cs.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cs.png"
+  },
+  "Angry Birds": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/angrybirds.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/angrybirds.png"
+  },
+  "Stardew Valley": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/star.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/star.png"
+  },
+  "Cookie Clicker": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cookies.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
+  },
+  "Aviassembly": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/avi2.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/avi.png"
+  },
+  "Bendy And The Ink Machine": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/bendy.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/bendy.png"
+  },
+  "Super Mario Bros": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/mario.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/mario.png"
+  }
+}
