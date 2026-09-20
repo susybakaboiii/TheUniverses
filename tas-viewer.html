@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>tas viewer</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:#1a1a1a; color:#bbb;
+    font:14px system-ui, -apple-system, sans-serif;
+    display:flex; flex-direction:column;
+  }
+  .bar{
+    display:flex; align-items:center; gap:8px;
+    padding:8px 10px; border-bottom:1px solid #333; flex:0 0 auto;
+  }
+  button{
+    font:inherit; font-size:13px; color:#ddd; background:#2a2a2a;
+    border:1px solid #3a3a3a; border-radius:4px; padding:5px 10px; cursor:pointer;
+  }
+  button:hover{background:#333}
+  button:disabled{opacity:.4; cursor:default}
+  button:focus-visible{outline:2px solid #666; outline-offset:2px}
+  #name{margin-left:auto; font-size:13px; color:#777; overflow:hidden;
+        text-overflow:ellipsis; white-space:nowrap; max-width:35vw}
+
+  /* library menu */
+  .menu-wrap{position:relative; flex:0 0 auto}
+  #menu{
+    position:absolute; top:calc(100% + 6px); right:0; z-index:5; display:none;
+    min-width:190px; max-height:60vh; overflow:auto;
+    background:#222; border:1px solid #3a3a3a; border-radius:4px; padding:4px;
+  }
+  #menu.open{display:block}
+  #menu button{
+    display:block; width:100%; text-align:left; background:none; border:none;
+    border-radius:3px; padding:6px 8px; color:#ccc; white-space:nowrap;
+  }
+  #menu button:hover{background:#333; color:#fff}
+  #menu .none{padding:6px 8px; color:#666; font-size:12px}
+
+  #stage{position:relative; flex:1; min-height:0; background:#fff}
+  #frame{width:100%; height:100%; border:0; display:block}
+  #exit{position:absolute; top:12px; right:12px; display:none}
+  #stage:fullscreen #exit{display:block}
+  #empty{
+    position:absolute; inset:0; background:#1a1a1a; color:#666;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+    font-size:13px; text-align:center; padding:20px;
+  }
+  body.dragging #empty{color:#aaa; background:#222}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <button id="open">Open</button>
+  <button id="reload" disabled>Reload</button>
+  <button id="fs" disabled>Fullscreen</button>
+  <button id="blank">about:blank</button>
+  <span id="name"></span>
+  <div class="menu-wrap">
+    <button id="libBtn">HTMLS</button>
+    <div id="menu"></div>
+  </div>
+</div>
+
+<div id="stage">
+  <iframe id="frame" title="Preview"
+    sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock allow-downloads"></iframe>
+  <button id="exit">Exit fullscreen</button>
+  <div id="empty">
+    <div>Drop an HTML file here, click Open, or pick one from HTMLS.</div>
+    <div>F for fullscreen, Esc to exit.</div>
+  </div>
+</div>
+
+<input id="picker" type="file" accept=".html,.htm,.xhtml,text/html" hidden>
+
+<script>
+/* ======================================================================
+   Your list lives in a JSON file:  { "Name": "html link", ... }
+   Point this at it (jsDelivr, GitHub raw, or a local file next to this one).
+   ====================================================================== */
+const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/ayosus@main/ht.json";
+/* ===================================================================== */
+
+let HTMLS = {};
+
+const $ = id => document.getElementById(id);
+const picker = $('picker'), frame = $('frame'), stage = $('stage'), empty = $('empty'),
+      menu = $('menu');
+let html = null;
+
+/* ---- local files ---- */
+$('open').onclick = () => picker.click();
+picker.onchange = e => { loadFile(e.target.files[0]); picker.value = ''; };
+
+function loadFile(file){
+  if(!file) return;
+  if(!/\.x?html?$/i.test(file.name) && file.type !== 'text/html'){ $('name').textContent = 'Not an HTML file'; return; }
+  const r = new FileReader();
+  r.onload = () => render(r.result, file.name);
+  r.readAsText(file);
+}
+
+/* ---- library ---- */
+async function loadList(){
+  menu.innerHTML = '<div class="none">Loading list…</div>';
+  try{
+    let text = await grab(LIST_URL);
+    if(!text.trim()) text = await grab(LIST_URL + (LIST_URL.includes('?') ? '&' : '?') + 'cb=' + Date.now());
+    if(!text.trim() && toRaw(LIST_URL)) text = await grab(toRaw(LIST_URL));
+    if(!text.trim()) throw new Error('empty response');
+
+    const data = JSON.parse(text);
+    HTMLS = Object.fromEntries(
+      Object.entries(data).filter(([k, v]) => typeof v === 'string' && v.trim())
+    );
+    buildMenu();
+  }catch(err){
+    menu.innerHTML = '';
+    const msg = document.createElement('div');
+    msg.className = 'none';
+    msg.textContent = 'Could not load list: ' + err.message;
+    const retry = document.createElement('button');
+    retry.textContent = 'Retry';
+    retry.onclick = loadList;
+    menu.append(msg, retry);
+  }
+}
+
+function buildMenu(){
+  menu.innerHTML = '';
+  const names = Object.keys(HTMLS);
+  if(!names.length){ menu.innerHTML = '<div class="none">List is empty.</div>'; return; }
+  names.forEach(n => {
+    const b = document.createElement('button');
+    b.textContent = n;
+    b.title = HTMLS[n];
+    b.onclick = () => { menu.classList.remove('open'); loadUrl(HTMLS[n], n); };
+    menu.append(b);
+  });
+  const refresh = document.createElement('button');
+  refresh.textContent = '↻ Refresh list';
+  refresh.style.color = '#777';
+  refresh.onclick = e => { e.stopPropagation(); loadList(); };
+  menu.append(refresh);
+}
+loadList();
+
+$('libBtn').onclick = e => { e.stopPropagation(); menu.classList.toggle('open'); };
+document.addEventListener('click', () => menu.classList.remove('open'));
+menu.addEventListener('click', e => e.stopPropagation());
+
+async function loadUrl(url, label){
+  $('name').textContent = 'Loading ' + label + '…';
+  try{
+    let used = url;
+    let text = await grab(url);
+
+    // Empty body? Try again bypassing any cached empty response.
+    if(!text.trim()){
+      used = url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+      text = await grab(used);
+    }
+    // Still empty? Fall back to GitHub raw, which is never cached.
+    if(!text.trim()){
+      const raw = toRaw(url);
+      if(raw){ used = raw; text = await grab(raw); }
+    }
+    if(!text.trim()){ $('name').textContent = label + ' — server returned an empty body'; return; }
+
+    const kb = (new Blob([text]).size / 1024).toFixed(1);
+    render(withBase(text, used), label + ' — ' + kb + ' KB');
+  }catch(err){
+    $('name').textContent = 'Failed: ' + err.message;
+  }
+}
+
+async function grab(url){
+  const res = await fetch(url, {cache:'no-store', headers:{'Accept':'text/html,text/plain,*/*'}});
+  if(!res.ok) throw new Error(res.status + ' ' + res.statusText);
+  return res.text();
+}
+
+// cdn.jsdelivr.net/gh/user/repo@ref/path  ->  raw.githubusercontent.com/user/repo/ref/path
+function toRaw(url){
+  const m = url.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^/]+)\/([^/@]+)@([^/]+)\/(.+)$/);
+  return m ? 'https://raw.githubusercontent.com/' + m[1] + '/' + m[2] + '/' + m[3] + '/' + m[4] : null;
+}
+
+// Give the page a base URL so its relative <img>/<script>/<link> paths still resolve.
+function withBase(text, url){
+  if(/<base\s/i.test(text)) return text;
+  const dir = url.slice(0, url.lastIndexOf('/') + 1);
+  const tag = '<base href="' + dir + '">';
+  if(/<head[^>]*>/i.test(text)) return text.replace(/<head[^>]*>/i, m => m + tag);
+  if(/<html[^>]*>/i.test(text)) return text.replace(/<html[^>]*>/i, m => m + '<head>' + tag + '</head>');
+  return tag + text;
+}
+
+/* ---- shared ---- */
+function render(source, label){
+  html = source;
+  frame.srcdoc = html;
+  empty.style.display = 'none';
+  $('reload').disabled = $('fs').disabled = false;
+  $('name').textContent = label;
+}
+
+/* ---- open this viewer inside an about:blank window ---- */
+$('blank').onclick = () => {
+  if(location.protocol === 'file:'){
+    $('name').textContent = 'about:blank needs the viewer served over http — see notes';
+    return;
+  }
+  const win = window.open('about:blank', '_blank');
+  if(!win){ $('name').textContent = 'Popup blocked — allow popups for this site'; return; }
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<style>html,body{margin:0;height:100%;overflow:hidden;background:#1a1a1a}' +
+    'iframe{border:0;display:block;width:100%;height:100%}</style></head><body>' +
+    '<iframe src="' + location.href + '" allow="fullscreen; clipboard-write" allowfullscreen></iframe>' +
+    '</body></html>'
+  );
+  win.document.close();
+};
+
+$('reload').onclick = () => { frame.srcdoc = ''; setTimeout(() => frame.srcdoc = html, 0); };
+
+function toggleFullscreen(){
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if(html !== null) stage.requestFullscreen().catch(() => {});
+}
+$('fs').onclick = $('exit').onclick = toggleFullscreen;
+document.addEventListener('fullscreenchange', () => {
+  $('fs').textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+});
+addEventListener('keydown', e => {
+  if(e.key === 'f' || e.key === 'F') toggleFullscreen();
+  if(e.key === 'Escape') menu.classList.remove('open');
+});
+
+/* ---- drag and drop ---- */
+let depth = 0;
+addEventListener('dragenter', e => { e.preventDefault(); depth++; document.body.classList.add('dragging'); });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('dragleave', () => { if(--depth <= 0){ depth = 0; document.body.classList.remove('dragging'); } });
+addEventListener('drop', e => {
+  e.preventDefault(); depth = 0; document.body.classList.remove('dragging');
+  loadFile(e.dataTransfer.files[0]);
+});
+</script>
+</body>
+</html>
