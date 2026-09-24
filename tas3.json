@@ -62,7 +62,8 @@
   },
   "Among Us": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/amongus.html",
-    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/amongus.png"
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/amongus.png",
+    "desc": "Latest Update | Fixed"
   },
   "PEAK": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/peak.html",
