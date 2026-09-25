@@ -65,6 +65,14 @@
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/amongus.png",
     "desc": "Latest Update | Fixed"
   },
+  "Kerbal Space Program": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ksp.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/ksp.png"
+  },
+  "Gang Beasts": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/gangbeasts.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/gangbeasts.png"
+  },
   "PEAK": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/peak.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/peak.png"
