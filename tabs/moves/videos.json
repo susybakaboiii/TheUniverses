@@ -1,8 +1,8 @@
 {
   "videos": [
     {
-      "name": "Cool video",
-      "poster": "https://example.com/posters/cool-video.png",
+      "name": "Jaws (1975)",
+      "poster": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/moves/jaws%20(1975)/jaws1975.png",
       "parts": [
         "https://example.com/videos/cool-video/part1.mp4",
         "https://example.com/videos/cool-video/part2.mp4",
