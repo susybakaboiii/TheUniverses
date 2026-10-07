@@ -1,0 +1,28 @@
+{
+  "videos": [
+    {
+      "name": "Cool video",
+      "poster": "https://example.com/posters/cool-video.png",
+      "parts": [
+        "https://example.com/videos/cool-video/part1.mp4",
+        "https://example.com/videos/cool-video/part2.mp4",
+        "https://example.com/videos/cool-video/part3.mp4"
+      ]
+    },
+    {
+      "name": "Another video",
+      "poster": "https://example.com/posters/another-video.png",
+      "parts": [
+        "https://example.com/videos/another-video/part1.mp4",
+        "https://example.com/videos/another-video/part2.mp4"
+      ]
+    },
+    {
+      "name": "Short video",
+      "poster": "https://example.com/posters/short-video.png",
+      "parts": [
+        "https://example.com/videos/short-video/part1.mp4"
+      ]
+    }
+  ]
+}
