@@ -56,11 +56,19 @@
   #search:focus{border-color:var(--accent, #454a52)}
   #bar.settings-active #search{display:none}
 
+  /* settings cog - pinned to the top right of the bar */
+  .tab.cog{display:flex; align-items:center; justify-content:center; padding:7px; flex:none}
+  .tab.cog svg{display:block; transition:transform .25s}
+  .tab.cog:hover svg, .tab.cog.active svg{transform:rotate(60deg)}
+  #bar.settings-active .cog, #bar.custom-active .cog{margin-left:auto}
+
   @media (max-width:620px){
     .logo{font-size:16px}
     #search{font-size:13px; padding:8px 10px}
     #tabs{gap:2px}
     .tab{padding:6px 9px}
+    .tab.cog{padding:6px; margin-left:auto}
+    #search{order:3; flex-basis:100%; max-width:none}
   }
 
   /* ---------- tab panels ---------- */
@@ -185,9 +193,9 @@
     <div class="logo">The&nbsp;<b>Universe</b></div>
     <div id="tabs">
       <button class="tab active" data-tab="htmls" type="button">Games</button>
-      <button class="tab" data-tab="settings" type="button">Settings</button>
     </div>
     <input id="search" type="search" placeholder="Search Games..." autocomplete="off" spellcheck="false">
+    <button id="settings-btn" class="tab cog" data-tab="settings" type="button" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
 
   <div id="tab-htmls" class="tabpanel active">
@@ -275,13 +283,14 @@ const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ta
    ADD YOUR OWN TABS HERE — one entry per HTML file link.
    Copy the example line, remove the //, and change the name and URL.
    Use a direct HTML file URL (not a GitHub file preview page).
-   Tabs appear beside Games and Settings and open inside this page.
+   Tabs appear beside Games and open inside this page.
    The HTML is downloaded when its tab is first opened; Reload fetches it again.
    Example:
      { name: "Tools", url: "https://example.com/tools.html" },
    ====================================================================== */
 const CUSTOM_TABS = [
      { name: "Movies", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/moves/move.html" },
+     { name: "Music", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/music-player.html" }
   // { name: "Tools", url: "https://example.com/tools.html" },
   // { name: "More Games", url: "https://example.com/games.html" },
 ];
@@ -410,7 +419,9 @@ $('tm-save').onclick = () => {
 applyTheme(loadActiveTheme() || PRESET_THEMES[0]);
 
 /* ---------- tabs ---------- */
+let lastTab = 'htmls';
 function setTab(name){
+  if(name !== 'settings') lastTab = name;
   document.querySelectorAll('.tab').forEach(b => {
     const active = b.dataset.tab === name;
     b.classList.toggle('active', active);
@@ -435,6 +446,8 @@ function bindTab(btn){
   btn.onclick = () => setTab(btn.dataset.tab);
 }
 document.querySelectorAll('.tab').forEach(bindTab);
+$('settings-btn').onclick = () =>
+  setTab($('settings-btn').classList.contains('active') ? lastTab : 'settings');
 
 async function loadCustomTab(state){
   state.loading = true;
