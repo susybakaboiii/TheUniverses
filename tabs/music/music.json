@@ -1,0 +1,41 @@
+{
+  "music": [
+    {
+      "artist": "Luna Vale",
+      "poster": "https://example.com/images/luna-vale.png",
+      "albums": [
+        {
+          "name": "Midnight Roads",
+          "cover": "https://example.com/images/midnight-roads.png",
+          "songs": [
+            { "name": "Headlights", "url": "https://example.com/music/headlights.mp3" },
+            { "name": "Empty Highway", "url": "https://example.com/music/empty-highway.mp3" },
+            { "name": "Last Exit", "url": "https://example.com/music/last-exit.mp3" }
+          ]
+        },
+        {
+          "name": "Paper Skies",
+          "cover": "https://example.com/images/paper-skies.png",
+          "songs": [
+            { "name": "Kites", "url": "https://example.com/music/kites.mp3" },
+            { "name": "Fold", "url": "https://example.com/music/fold.mp3" }
+          ]
+        }
+      ]
+    },
+    {
+      "artist": "The Copper Owls",
+      "poster": "https://example.com/images/copper-owls.png",
+      "albums": [
+        {
+          "name": "Rust and Feathers",
+          "cover": "https://example.com/images/rust-and-feathers.png",
+          "songs": [
+            { "name": "Night Shift", "url": "https://example.com/music/night-shift.mp3" },
+            { "name": "Barn Light", "url": "https://example.com/music/barn-light.mp3" }
+          ]
+        }
+      ]
+    }
+  ]
+}
