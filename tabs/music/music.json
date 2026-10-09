@@ -25,11 +25,22 @@
           ]
         },
         {
-          "name": "Bully",
-          "cover": "https://example.com/images/paper-skies.png",
+          "name": "My Beautiful Dark Twisted Fantasy",
+          "cover": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/MBDTF/mbdtf.png",
           "songs": [
-            { "name": "Test", "url": "https://example.com/music/kites.mp3" },
-            { "name": "Test 2", "url": "https://example.com/music/fold.mp3" }
+            { "name": "Dark Fantasy", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513412/Dark_Fantasy_spotdown.org_mjbdyn.mp3" },
+            { "name": "Gorgeous", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513414/Gorgeous_spotdown.org_eq55je.mp3" },
+            { "name": "POWER", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513489/POWER_spotdown.org_ejxcdr.mp3" },
+            { "name": "All Of The Lights (interclude)", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513414/All_Of_The_Lights_Interlude__spotdown.org_wdxtla.mp3" },
+            { "name": "All Of The Lights", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513412/All_Of_The_Lights_spotdown.org_zaum1p.mp3" },
+            { "name": "Monster", "url": "https://example.com/music/fold.mp3" },
+            { "name": "So Appalled", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513411/So_Appalled_spotdown.org_mlgjuq.mp3" },
+            { "name": "Devil In A New Dress", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513414/Devil_In_A_New_Dress_spotdown.org_du7uz2.mp3" },
+            { "name": "Runaway", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513414/Runaway_spotdown.org_dbdrvl.mp3" },
+            { "name": "Hell Of A Life", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513409/Hell_Of_A_Life_spotdown.org_ahsk2e.mp3" },
+            { "name": "Blame Game", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513407/Blame_Game_spotdown.org_fg88fe.mp3" },
+            { "name": "Lost In The World", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513408/Lost_In_The_World_spotdown.org_m3wyxb.mp3" },
+            { "name": "Who Will Survive In America", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791513408/Who_Will_Survive_In_America_spotdown.org_tt9puo.mp3" }
           ]
         }
       ]
