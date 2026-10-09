@@ -25,11 +25,11 @@
           ]
         },
         {
-          "name": "Paper Skies",
+          "name": "Bully",
           "cover": "https://example.com/images/paper-skies.png",
           "songs": [
-            { "name": "Kites", "url": "https://example.com/music/kites.mp3" },
-            { "name": "Fold", "url": "https://example.com/music/fold.mp3" }
+            { "name": "Test", "url": "https://example.com/music/kites.mp3" },
+            { "name": "Test 2", "url": "https://example.com/music/fold.mp3" }
           ]
         }
       ]
