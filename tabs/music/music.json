@@ -35,15 +35,15 @@
       ]
     },
     {
-      "artist": "The Copper Owls",
+      "artist": "Lil Wayne",
       "poster": "https://example.com/images/copper-owls.png",
       "albums": [
         {
-          "name": "Rust and Feathers",
+          "name": "test album",
           "cover": "https://example.com/images/rust-and-feathers.png",
           "songs": [
-            { "name": "Night Shift", "url": "https://example.com/music/night-shift.mp3" },
-            { "name": "Barn Light", "url": "https://example.com/music/barn-light.mp3" }
+            { "name": "test", "url": "https://example.com/music/night-shift.mp3" },
+            { "name": "test", "url": "https://example.com/music/barn-light.mp3" }
           ]
         }
       ]
