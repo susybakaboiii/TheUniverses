@@ -8,19 +8,20 @@
           "name": "Graduation",
           "cover": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/graduation.png",
           "songs": [
-            { "name": "Good Morning", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/graduation.png" },
-            { "name": "Champion", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Champion_spotdown.mp3" },
-            { "name": "Stronger", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Stronger_spotdown.mp3" },
-            { "name": "I Wonder", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Good Life", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Can't Tell Me Nothing", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Barry Bonds", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Drunk and Hot Girls", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Flashing Lights", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Everything I Am", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Homecoming", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Homecoming_spotdown.mp3" },
-            { "name": "Big Brother", "url": "https://example.com/music/last-exit.mp3" },
-            { "name": "Good Night", "url": "https://example.com/music/last-exit.mp3" }
+            { "name": "Good Morning", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511773/Good_Morning_spotdown.org_bfut3w.mp3" },
+            { "name": "Champion", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511773/Champion_spotdown.org_gc6g56.mp3" },
+            { "name": "Stronger", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511770/Stronger_spotdown.org_duwm7c.mp3" },
+            { "name": "I Wonder", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511772/I_Wonder_spotdown.org_uz2fgp.mp3" },
+            { "name": "Good Life", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511773/Good_Life_spotdown.org_sjaqor.mp3" },
+            { "name": "Can't Tell Me Nothing", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511770/Can_t_Tell_Me_Nothing_spotdown.org_ucyjru.mp3" },
+            { "name": "Barry Bonds", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511773/Barry_Bonds_spotdown.org_w3ap3x.mp3" },
+            { "name": "Drunk and Hot Girls", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511771/Drunk_and_Hot_Girls_spotdown.org_wkkdpr.mp3" },
+            { "name": "Flashing Lights", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511770/Flashing_Lights_spotdown.org_qsrsvh.mp3" },
+            { "name": "Everything I Am", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511767/Everything_I_Am_spotdown.org_aviyau.mp3" },
+            { "name": "The Glory", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511766/The_Glory_spotdown.org_wswt2z.mp3" },
+            { "name": "Homecoming", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511770/Homecoming_spotdown.org_nqri1h.mp3" },
+            { "name": "Big Brother", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511770/Big_Brother_spotdown.org_y4nvhl.mp3" },
+            { "name": "Good Night", "url": "https://res.cloudinary.com/r8rf9fhv/video/upload/v1791511767/Good_Night_spotdown.org_spimwd.mp3" }
           ]
         },
         {
