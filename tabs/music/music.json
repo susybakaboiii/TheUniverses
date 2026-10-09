@@ -1,16 +1,26 @@
 {
   "music": [
     {
-      "artist": "Luna Vale",
-      "poster": "https://example.com/images/luna-vale.png",
+      "artist": "Kanye West",
+      "poster": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/kanye.png",
       "albums": [
         {
-          "name": "Midnight Roads",
-          "cover": "https://example.com/images/midnight-roads.png",
+          "name": "Graduation",
+          "cover": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/graduation.png",
           "songs": [
-            { "name": "Headlights", "url": "https://example.com/music/headlights.mp3" },
-            { "name": "Empty Highway", "url": "https://example.com/music/empty-highway.mp3" },
-            { "name": "Last Exit", "url": "https://example.com/music/last-exit.mp3" }
+            { "name": "Good Morning", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/graduation.png" },
+            { "name": "Champion", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Champion_spotdown.mp3" },
+            { "name": "Stronger", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Stronger_spotdown.mp3" },
+            { "name": "I Wonder", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Good Life", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Can't Tell Me Nothing", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Barry Bonds", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Drunk and Hot Girls", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Flashing Lights", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Everything I Am", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Homecoming", "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/artist/kanye/Graduation/Homecoming_spotdown.mp3" },
+            { "name": "Big Brother", "url": "https://example.com/music/last-exit.mp3" },
+            { "name": "Good Night", "url": "https://example.com/music/last-exit.mp3" }
           ]
         },
         {
