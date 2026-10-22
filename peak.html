@@ -1,26 +1,18 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <base href="https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@main/">
-    <title>PEAK</title>
     <style>
       /* black, not the Unity brown: whatever the canvas does not cover reads as a
          letterbox bar rather than a strip of a different colour hanging off the bottom */
       html, body { margin: 0; padding: 0; background: #000; height: 100%;
                    overflow: hidden; }
-      #wrap { position: relative; display: flex; flex-direction: column;
-              align-items: center; justify-content: center; height: 100%;
-              background: #000; }
+      #wrap { display: flex; flex-direction: column; align-items: center;
+              justify-content: center; height: 100%; background: #000; }
       #unity-canvas { background: #000; max-width: 100%; max-height: 100%;
                       outline: none; display: block; }
-      /* overlay sits centered over the canvas/screen instead of stacking below it */
-      #overlay { position: absolute; top: 50%; left: 50%;
-                 transform: translate(-50%, -50%); display: flex;
-                 flex-direction: column; align-items: center; z-index: 5;
-                 pointer-events: none; width: 320px; }
-      #bar { width: 320px; height: 12px; border: 1px solid #555; display: none; }
+      #bar { width: 320px; height: 12px; margin-top: 14px; border: 1px solid #555;
+             display: none; }
       #barfill { width: 0%; height: 100%; background: #7cc242; }
       #msg { color: #bbb; font: 13px/1.5 system-ui, sans-serif; margin-top: 10px;
              text-align: center; }
@@ -39,28 +31,14 @@
   <body>
     <div id="wrap">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
-      <div id="overlay">
-        <div id="bar"><div id="barfill"></div></div>
-        <div id="msg">Loading…</div>
-      </div>
+      <div id="bar"><div id="barfill"></div></div>
+      <div id="msg">Loading…</div>
     </div>
     <button id="fs" type="button">Fullscreen</button>
     <div id="credit">
       ported by @._.dasher._.<br>
       <a href="https://wasm.rip/" target="_blank" rel="noopener">wasm.rip</a>
     </div>
-    <script>
-      // Surface any uncaught error on screen instead of leaving the page stuck on
-      // the static "Loading…" text with no clue what went wrong.
-      window.addEventListener("error", function (e) {
-        var m = document.querySelector("#msg");
-        if (m) m.textContent = "Error: " + (e.message || e);
-      });
-      window.addEventListener("unhandledrejection", function (e) {
-        var m = document.querySelector("#msg");
-        if (m) m.textContent = "Error: " + (e.reason && e.reason.message ? e.reason.message : e.reason);
-      });
-    </script>
     <script>
       // Manifest written by make_cdn_bundle.py. Each entry is either a plain file or a
       // list of parts that must be concatenated back together in order.
@@ -104,18 +82,10 @@
       // fetches LevelBundles from the CDN too instead of from wherever the page is hosted.
       var CDN_BASE = "https://cdn.jsdelivr.net/gh/wasmdotrip/Peak-Port@main";
       if (CDN_BASE) {
-        // Wrapped in try/catch: history.replaceState throws SecurityError in some
-        // sandboxed/embedded contexts (iframes, file:// pages), which used to kill
-        // this whole script before the loader below ever ran — leaving the page
-        // stuck on the static "Loading…" text with no clue why.
-        try {
-          var u = new URL(window.location.href);
-          if (u.searchParams.get("cdn") !== CDN_BASE) {
-            u.searchParams.set("cdn", CDN_BASE);
-            history.replaceState(null, "", u.toString());
-          }
-        } catch (e) {
-          console.warn("cdn param stamp skipped:", e);
+        var u = new URL(window.location.href);
+        if (u.searchParams.get("cdn") !== CDN_BASE) {
+          u.searchParams.set("cdn", CDN_BASE);
+          history.replaceState(null, "", u.toString());
         }
       }
 
@@ -132,13 +102,12 @@
       var TOTAL = MANIFEST.data.bytes + MANIFEST.framework.bytes + MANIFEST.code.bytes;
       var downloaded = 0;
 
-      function report(label, partInfo) {
+      function report(label) {
         bar.style.display = "block";
         var pct = TOTAL ? downloaded / TOTAL : 0;
         barfill.style.width = (pct * 100).toFixed(1) + "%";
-        var partText = partInfo ? " — " + partInfo : "";
-        setMsg("Downloading " + label + partText + "… " + mb(downloaded) + " / " +
-               mb(TOTAL) + " MB (" + Math.floor(pct * 100) + "%)");
+        setMsg("Downloading " + label + "… " + mb(downloaded) + " / " + mb(TOTAL) +
+               " MB (" + Math.floor(pct * 100) + "%)");
       }
 
       // Fetch every part and glue them into one Blob, then expose it as a blob: URL.
@@ -149,14 +118,6 @@
         var urls = entry.parts || [entry.file];
         var buffers = [];
         for (var i = 0; i < urls.length; i++) {
-          // show which specific file/part is currently in flight, e.g.
-          // "part 3/13 (WebGL.data.unityweb.part002)" — filename included so it's
-          // obvious exactly what's being pulled, not just a bare counter
-          var partInfo = urls.length > 1
-            ? "part " + (i + 1) + "/" + urls.length + " (" + urls[i] + ")"
-            : urls[i];
-          report(label, partInfo);
-
           var url = BUILD + "/" + urls[i];
           var res = await fetch(url);
           if (!res.ok) throw new Error("failed to fetch " + url + " (" + res.status + ")");
@@ -167,14 +128,14 @@
               if (step.done) break;
               buffers.push(step.value);
               downloaded += step.value.byteLength;
-              report(label, partInfo);
+              report(label);
             }
           } else {
             // no streaming support: fall back to whole-part reads
             var buf = await res.arrayBuffer();
             buffers.push(buf);
             downloaded += buf.byteLength;
-            report(label, partInfo);
+            report(label);
           }
         }
         return URL.createObjectURL(new Blob(buffers));
