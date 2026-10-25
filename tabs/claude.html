@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Hard lock: this page may only make network requests to your local server. If you change PORT, update it here and in API below. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src http://localhost:8787 http://127.0.0.1:8787; img-src 'self' data:; base-uri 'none'; form-action 'none'">
-<title>Claude Chat</title>
+<!-- Hard lock: this page may only make network requests to your own server (via the tunnel or localhost). If the tunnel address changes, update it here and in TUNNEL below. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self' https://sagem-intl-clusters-emails.trycloudflare.com http://localhost:8787 http://127.0.0.1:8787; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>The Universe</title>
 <style>
 :root{--bg:#111214;--side:#0c0d0e;--panel:#1a1b1e;--hover:#202226;--text:#e8e8ea;--muted:#8d8f96;--border:#26282c;--accent:#d97757;--user:#1f2125;--code:#0a0b0c;--err:#f97066}
 *{box-sizing:border-box}
@@ -83,6 +83,19 @@ summary{cursor:pointer;width:fit-content}
 button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{max-width:760px;margin:6px auto 0;font-size:12px;color:var(--muted);text-align:center}
 
+/* password screen */
+#login{position:fixed;inset:0;z-index:20;background:var(--bg);display:none;align-items:center;justify-content:center;padding:16px}
+#login.show{display:flex}
+#login form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
+#login h2{margin:0 0 4px;font-size:18px;font-weight:600}
+#login p{margin:0;color:var(--muted);font-size:13px}
+#pw{height:40px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text);font:inherit;padding:0 12px;outline:0}
+#pw:focus{border-color:var(--accent)}
+#login button{height:40px;border-radius:10px;background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+#loginErr{color:var(--err);min-height:1.2em}
+#logout{margin-left:auto;font-size:12px;padding:4px 10px;color:var(--muted);display:none}
+body.has-pw #logout{display:inline-block}
+
 /* narrow screens: sidebar slides over */
 #shade{display:none}
 @media (max-width:760px){
@@ -102,7 +115,8 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outlin
 <div class="col">
   <header>
     <button id="menu" type="button" aria-label="Chats">☰</button>
-    <h1>Claude Chat</h1>
+    <h1>Universe AI</h1>
+    <button id="logout" type="button">Log out</button>
   </header>
   <main id="scroller"><div id="log"></div></main>
   <footer>
@@ -127,8 +141,20 @@ button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outlin
     <p class="hint">Enter to send · Shift+Enter for a new line · Chats are saved in this browser only</p>
   </footer>
 </div>
+<div id="login"><form id="loginForm">
+  <h2>Universe AI</h2>
+  <p>Enter the password.</p>
+  <input id="pw" type="password" autocomplete="current-password" placeholder="Password" required>
+  <button type="submit">Unlock</button>
+  <p id="loginErr"></p>
+</form></div>
 <script>
-const API = "http://localhost:8787";
+// Your Cloudflare tunnel. If the address changes, update it here AND in the Content-Security-Policy at the top.
+const TUNNEL = "https://sagem-intl-clusters-emails.trycloudflare.com";
+// Opened through the server or the tunnel → talk to that same address. Opened as a file → the tunnel.
+const API = location.protocol.startsWith("http") ? location.origin : TUNNEL;
+let token = ""; try { token = localStorage.getItem("token") || ""; } catch {}
+const authHeaders = () => token ? { Authorization: "Bearer " + token } : {};
 const STORE = "haiku-chats";
 const $ = id => document.getElementById(id);
 const log = $("log"), list = $("list"), scroller = $("scroller"), input = $("input"), sendBtn = $("send"), sys = $("system");
@@ -158,12 +184,48 @@ function applyModel(id) {
 }
 applyModel(savedModel || "claude-haiku-5-5");
 modelSel.addEventListener("change", () => { applyModel(modelSel.value); try { localStorage.setItem("model", modelSel.value); } catch {} input.focus(); });
-fetch(API + "/api/config").then(r => r.json()).then(c => {
-  if (!Array.isArray(c.models)) return;
-  modelSel.innerHTML = "";
-  c.models.forEach(m => modelSel.add(new Option(m.name, m.id)));
-  applyModel(savedModel || c.default);
-}).catch(() => {});
+/* login: only shown when the server has APP_PASSWORD set */
+function showLogin(msg = "") {
+  $("loginErr").textContent = msg;
+  $("login").classList.add("show"); $("pw").focus();
+}
+async function loadConfig() {
+  let r;
+  try { r = await fetch(API + "/api/config", { headers: authHeaders() }); }
+  catch { return "offline"; }
+  if (r.status === 401 || r.status === 429) {
+    const err = (await r.json().catch(() => ({}))).error || "";
+    return r.status === 429 ? err : (token ? "Wrong password" : "need");
+  }
+  const c = await r.json().catch(() => ({}));
+  if (Array.isArray(c.models)) {
+    modelSel.innerHTML = "";
+    c.models.forEach(m => modelSel.add(new Option(m.name, m.id)));
+    applyModel(savedModel || c.default);
+  }
+  document.body.classList.toggle("has-pw", !!token);
+  return "ok";
+}
+loadConfig().then(s => {
+  if (s === "need") showLogin();
+  else if (s !== "ok" && s !== "offline") { token = ""; showLogin(s); }
+});
+$("loginForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  token = $("pw").value;
+  const s = await loadConfig();
+  if (s === "ok") {
+    try { localStorage.setItem("token", token); } catch {}
+    $("pw").value = ""; $("login").classList.remove("show"); input.focus();
+  } else {
+    token = "";
+    showLogin(s === "offline" ? "Can't reach the server." : s === "need" ? "Wrong password" : s);
+  }
+});
+$("logout").addEventListener("click", () => {
+  token = ""; try { localStorage.removeItem("token"); } catch {}
+  document.body.classList.remove("has-pw"); showLogin();
+});
 
 /* ---------- rendering ---------- */
 const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -279,7 +341,7 @@ async function send() {
   try {
     const res = await fetch(API + "/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({
         messages: chat.messages.map(({ role, content }) => ({ role, content })),
         system: sys.value.trim() || undefined,
@@ -288,6 +350,7 @@ async function send() {
       }),
       signal: ctrl.signal,
     });
+    if (res.status === 401) showLogin("Please enter your password.");
     if (!res.ok) {
       let msg = res.statusText;
       try { msg = (await res.json()).error || msg; } catch {}
