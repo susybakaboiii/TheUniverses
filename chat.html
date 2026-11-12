@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hangout</title>
+<title>Universe Chat</title>
 <style>
 /* Colors match The Universe. When this page runs as a Universe tab it also
    picks up whatever Universe theme is active (see applyUniverseTheme). */
@@ -200,7 +200,7 @@ label.person{cursor:pointer}
 <!-- ============ Sign in ============ -->
 <div id="auth">
   <form class="card" id="authForm" autocomplete="on">
-    <div class="logo">Hang<b>out</b></div>
+    <div class="logo">Universe <b>Chat</b></div>
     <p class="tagline">Talk to everyone, or just your people.</p>
     <div class="tabs"><button type="button" data-mode="login" class="on">Log in</button><button type="button" data-mode="register">Sign up</button></div>
     <label>Username<input class="field" id="aUser" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></label>
@@ -213,7 +213,7 @@ label.person{cursor:pointer}
 <!-- ============ App ============ -->
 <div id="app" class="hidden">
   <aside id="side">
-    <div class="side-head"><div class="logo">Hang<b>out</b></div></div>
+    <div class="side-head"><div class="logo">Universe <b>Chat</b></div></div>
     <div class="side-scroll">
       <div id="globalSlot"></div>
       <div class="sec"><span>Friends</span><button class="icon sm" id="addFriendBtn" title="Add a friend"></button></div>
@@ -259,7 +259,7 @@ label.person{cursor:pointer}
    then paste the https://....trycloudflare.com address it prints here.
    (https:// is fine, it gets turned into wss:// automatically.)
    ====================================================================== */
-const SERVER_URL = "https://your-tunnel.trycloudflare.com";
+const SERVER_URL = "https://smithsonian-battle-judgment-reflections.trycloudflare.com";
 
 /* Optional: a JSON file like  { "server": "https://....trycloudflare.com" }
    If set, the address is read from there first, so you can switch tunnels by
@@ -409,7 +409,7 @@ function authBusy(busy, label) {
 const authErr = t => { $('#authErr').textContent = t || ''; };
 function showAuth() {
   $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
-  document.title = 'Hangout'; closeModal(); authBusy(false);
+  document.title = 'Universe Chat'; closeModal(); authBusy(false);
 }
 function resetSession() {
   S.me = null; S.st = null; S.token = null; S.msgs = {}; S.unread = {}; S.entered = false; S.active = 'global';
@@ -526,7 +526,7 @@ function renderSide() {
 }
 function updateTitle() {
   const n = Object.entries(S.unread).reduce((a, [c, v]) => a + (chatVisible(c) ? 0 : v), 0) + S.hiddenCount;
-  document.title = n ? `(${n}) Hangout` : 'Hangout';
+  document.title = n ? `(${n}) Universe Chat` : 'Universe Chat';
 }
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { S.hiddenCount = 0; if (chatVisible(S.active)) S.unread[S.active] = 0; renderSide(); updateTitle(); }
