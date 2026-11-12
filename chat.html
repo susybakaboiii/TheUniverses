@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hangout</title>
+<style>
+/* Colors match The Universe. When this page runs as a Universe tab it also
+   picks up whatever Universe theme is active (see applyUniverseTheme). */
+:root{
+  --bg:#111214; --bg2:#141619; --bg3:#1b1d21; --border:#2c3036;
+  --text:#eeeeee; --muted:#7d838c; --accent:#8b909a;
+  --on-accent:#111214; --who-l:68%; --ok:#3fb950; --danger:#ff7b7b;
+  color-scheme:dark;
+}
+html{
+  --sb-thumb:color-mix(in srgb, var(--muted) 55%, var(--bg));
+  scrollbar-color:var(--sb-thumb) var(--bg);
+}
+@supports not (scrollbar-color:auto){
+  ::-webkit-scrollbar{width:12px;height:8px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--sb-thumb);border-radius:8px;border:3px solid var(--bg)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:14px/1.45 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+input,textarea,select{font:inherit;color:inherit}
+svg{display:block}
+.hidden{display:none!important}
+.muted{color:var(--muted)} .small{font-size:12px} .b{font-weight:700}
+
+/* ---------- buttons & fields (same look as The Universe) ---------- */
+.primary,.ghost,.danger{
+  font-size:13px;color:var(--text);background:var(--bg3);
+  border:1px solid var(--border);border-radius:7px;padding:8px 14px;
+}
+.primary:hover,.ghost:hover,.danger:hover{border-color:var(--accent)}
+.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+.primary:hover{filter:brightness(1.1)}
+.primary:disabled{opacity:.6;cursor:default;filter:none}
+.danger{color:var(--danger)}
+.mini{padding:5px 10px;font-size:12px;flex:none}
+.danger-text{color:var(--danger)}
+.icon{width:34px;height:34px;border-radius:7px;display:grid;place-items:center;color:var(--muted);flex:none;border:1px solid transparent}
+.icon:hover{color:var(--text);background:var(--bg3);border-color:var(--border)}
+.icon.sm{width:24px;height:24px}
+.field{
+  width:100%;font-size:13px;color:var(--text);background:var(--bg3);
+  border:1px solid var(--border);border-radius:7px;padding:8px 11px;outline:none;min-width:0;
+}
+.field:focus{border-color:var(--accent)}
+.field::placeholder{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.inline{display:flex;gap:8px}
+.inline .field{flex:1}
+
+.logo{font-weight:800;font-size:19px;letter-spacing:.02em;color:var(--text);white-space:nowrap}
+.logo b{font-weight:800;color:var(--accent)}
+
+/* ---------- sign in ---------- */
+#auth{min-height:100%;display:grid;place-items:center;padding:24px 16px}
+.card{width:min(360px,100%);background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:26px 22px;display:flex;flex-direction:column;gap:12px}
+.card .logo{font-size:24px;text-align:center}
+.tagline{text-align:center;margin:-6px 0 4px;color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px}
+.tabs button{flex:1;font-size:13px;color:var(--muted);border:1px solid transparent;border-radius:7px;padding:7px 12px}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{background:var(--bg3);color:var(--text);border-color:var(--border)}
+.card label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.err{color:var(--danger);font-size:13px}
+.err:empty{display:none}
+
+/* ---------- layout ---------- */
+#app{display:flex;height:100%;height:100dvh}
+#side{width:290px;flex:none;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0}
+.side-head{display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--border);min-height:58px}
+.side-scroll{flex:1;overflow-y:auto;padding:8px}
+.side-foot{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 12px;border-top:1px solid var(--border)}
+.side-foot .who-me{flex:1;min-width:0}
+.side-foot .who-me div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec{display:flex;align-items:center;justify-content:space-between;padding:14px 4px 6px 8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.item{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border-radius:8px;text-align:left;border:1px solid transparent}
+.item:hover{background:var(--bg3)}
+.item.on{background:var(--bg3);border-color:var(--border)}
+.meta{flex:1;min-width:0}
+.name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--accent);color:var(--on-accent);font-size:11px;font-weight:700;display:grid;place-items:center;flex:none}
+.hint{font-size:12px;color:var(--muted);padding:4px 8px 8px}
+.req{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);margin-bottom:6px}
+
+.avatar{
+  position:relative;flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+  font-weight:700;font-size:14px;color:#fff;user-select:none;
+  background:linear-gradient(150deg,hsl(var(--h,220) 70% 48%),hsl(calc(var(--h,220) + 40) 72% 34%));
+}
+.avatar.sq{border-radius:8px}
+.avatar.global{background:var(--bg3);color:var(--accent);border:1px solid var(--border);font-size:17px}
+.avatar.dot::after{content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:var(--ok);border:2px solid var(--bg2)}
+.avatar.big{width:64px;height:64px;font-size:26px}
+
+#main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.chat-head{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);min-height:58px}
+.chat-head .title{flex:1;min-width:0}
+.chat-head .title > *{display:block;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.back{display:none;margin-left:-6px}
+.banner{background:var(--bg3);color:var(--muted);border-bottom:1px solid var(--border);text-align:center;font-size:12px;padding:5px}
+
+#msgs{flex:1;overflow-y:auto;padding:12px 16px 10px;display:flex;flex-direction:column}
+.row{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+.row.cont{margin-top:2px}
+.row.mine{justify-content:flex-end}
+.row .avatar{width:30px;height:30px;font-size:13px;cursor:pointer}
+.av-spacer{width:30px;flex:none}
+.body{display:flex;flex-direction:column;align-items:flex-start;max-width:min(580px,80%);min-width:0}
+.row.mine .body{align-items:flex-end}
+.who{font-size:12px;font-weight:700;color:hsl(var(--h) 70% var(--who-l));padding:0 4px 2px}
+.who:hover{text-decoration:underline}
+.bubble{background:var(--bg3);border:1px solid var(--border);padding:7px 11px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+.row:not(.mine) .bubble{border-bottom-left-radius:3px}
+.row.mine .bubble{background:var(--accent);border-color:var(--accent);color:var(--on-accent);border-bottom-right-radius:3px}
+.time{float:right;font-size:10.5px;opacity:.6;margin:7px -3px -4px 10px;white-space:nowrap}
+.day{align-self:center;margin:16px 0 4px;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg3);border:1px solid var(--border);padding:2px 10px;border-radius:999px}
+.sys{align-self:center;margin:10px 0 2px;font-size:12px;color:var(--muted);text-align:center;max-width:90%}
+.empty{margin:auto;text-align:center;color:var(--muted);padding:24px}
+.empty .big-emoji{font-size:32px;margin-bottom:6px}
+.empty .b{color:var(--text)}
+
+#composer{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--bg2);border-top:1px solid var(--border)}
+#input{flex:1;resize:none;max-height:160px;min-height:40px;padding:9px 13px;border:1px solid var(--border);background:var(--bg3);border-radius:9px;outline:none;line-height:1.4}
+#input:focus{border-color:var(--accent)}
+#input::placeholder{color:var(--muted)}
+.send{width:40px;height:40px;border-radius:9px;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;flex:none}
+.send:hover{filter:brightness(1.1)}
+
+/* ---------- modal & toasts ---------- */
+#modalWrap{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 70%,transparent);backdrop-filter:blur(4px);display:grid;place-items:center;padding:16px;z-index:20}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;width:min(420px,100%);max-height:min(640px,88vh);display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.m-head{display:flex;align-items:center;gap:10px;padding:14px 10px 6px 18px}
+.m-head h2{margin:0;font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-body{padding:6px 18px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.sec2{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.person{display:flex;align-items:center;gap:10px;padding:6px 0}
+.person input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);flex:none}
+label.person{cursor:pointer}
+.profile{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 4px}
+#toasts{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;z-index:30;pointer-events:none;width:max-content;max-width:calc(100% - 32px)}
+.toast{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px 14px;border-radius:8px;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.3);transition:opacity .3s,transform .3s;text-align:center}
+.toast.bad{color:var(--danger)}
+.toast.out{opacity:0;transform:translateY(6px)}
+
+@media (max-width:760px){
+  #side{width:100%;border-right:0}
+  #app:not(.in-chat) #main{display:none}
+  #app.in-chat #side{display:none}
+  .back{display:grid}
+  .body{max-width:84%}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ Sign in ============ -->
+<div id="auth">
+  <form class="card" id="authForm" autocomplete="on">
+    <div class="logo">Hang<b>out</b></div>
+    <p class="tagline">Talk to everyone, or just your people.</p>
+    <div class="tabs"><button type="button" data-mode="login" class="on">Log in</button><button type="button" data-mode="register">Sign up</button></div>
+    <label>Username<input class="field" id="aUser" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></label>
+    <label>Password<input class="field" id="aPass" type="password" autocomplete="current-password" required></label>
+    <div class="err" id="authErr"></div>
+    <button class="primary" id="authBtn">Log in</button>
+  </form>
+</div>
+
+<!-- ============ App ============ -->
+<div id="app" class="hidden">
+  <aside id="side">
+    <div class="side-head"><div class="logo">Hang<b>out</b></div></div>
+    <div class="side-scroll">
+      <div id="globalSlot"></div>
+      <div class="sec"><span>Friends</span><button class="icon sm" id="addFriendBtn" title="Add a friend"></button></div>
+      <div id="requests"></div>
+      <div id="friendList"></div>
+      <div class="sec"><span>Groups</span><button class="icon sm" id="newGroupBtn" title="New group"></button></div>
+      <div id="groupList"></div>
+    </div>
+    <div class="side-foot">
+      <span id="meAv"></span>
+      <div class="who-me"><div class="b" id="meName"></div><div class="small muted" id="connText">Online</div></div>
+      <button class="icon" id="logoutBtn" title="Log out"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="chat-head">
+      <button class="icon back" id="backBtn" title="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <span id="chatAv"></span>
+      <div class="title"><button class="b" id="chatTitle"></button><button class="small muted" id="chatSub"></button></div>
+      <button class="icon" id="infoBtn" title="Details"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></button>
+    </header>
+    <div class="banner hidden" id="banner">Reconnecting…</div>
+    <div id="msgs"></div>
+    <form id="composer">
+      <textarea id="input" rows="1" placeholder="Message" maxlength="2000"></textarea>
+      <button class="send" title="Send"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
+    </form>
+  </main>
+</div>
+
+<div id="modalWrap" class="hidden"><div class="modal" id="modal"></div></div>
+<div id="toasts"></div>
+
+<script>
+/* ======================================================================
+   SERVER — the one server everybody connects to.
+   Start your tunnel with:   cloudflared tunnel --url http://localhost:3000
+   then paste the https://....trycloudflare.com address it prints here.
+   (https:// is fine, it gets turned into wss:// automatically.)
+   ====================================================================== */
+const SERVER_URL = "https://smithsonian-battle-judgment-reflections.trycloudflare.com";
+
+/* Optional: a JSON file like  { "server": "https://....trycloudflare.com" }
+   If set, the address is read from there first, so you can switch tunnels by
+   editing that one file instead of this page. Leave "" to just use SERVER_URL. */
+const SERVER_CONFIG_URL = "";
+/* ===================================================================== */
+
+(() => {
+'use strict';
+
+/* ---------- tiny helpers ---------- */
+const $ = s => document.querySelector(s);
+function el(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = String(v);
+    else if (k === 'html') e.innerHTML = v;           // only ever used with constant icons
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'value') e.value = v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  return e;
+}
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} },
+};
+const ICON = {
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+};
+$('#addFriendBtn').innerHTML = ICON.plus;
+$('#newGroupBtn').innerHTML = ICON.plus;
+
+const isMobile = () => matchMedia('(max-width: 760px)').matches;
+const hue = s => { let h = 0; for (const c of String(s).toLowerCase()) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
+function avatar(name, cls = '') {
+  return el('span', { class: 'avatar ' + cls, style: `--h:${hue(name)}`, text: (String(name)[0] || '?').toUpperCase() });
+}
+const dayKey = ts => new Date(ts).toDateString();
+const hm = ts => new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+function dayLabel(ts) {
+  const d = new Date(ts), now = new Date(), y = new Date(); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === now.toDateString()) return 'Today';
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+}
+
+/* ---------- state ---------- */
+const S = {
+  server: '', ws: null, queue: [], connected: false,
+  token: null, me: null, st: null, online: new Set(),
+  active: 'global', msgs: {}, unread: {}, hiddenCount: 0, entered: false, mode: 'login',
+};
+function normServer(s) {
+  s = (s || '').trim() || 'localhost:3000';
+  s = s.replace(/^http(s?):\/\//i, 'ws$1://');
+  if (!/^wss?:\/\//i.test(s)) s = 'ws://' + s;
+  return s.replace(/\/+$/, '');
+}
+const tokenKey = () => 'hangout.token';
+
+/* ---------- connection ---------- */
+function connect() {
+  if (S.ws && S.ws.readyState <= 1) return;
+  if (!S.server) { S.queue = []; authBusy(false); authErr(S.serverProblem || 'No server address is set.'); return; }
+  let ws;
+  try { ws = new WebSocket(S.server); }
+  catch { S.queue = []; authBusy(false); authErr(`"${S.server}" doesn't look like a valid server address.`); return; }
+  S.ws = ws;
+  ws.onopen = () => {
+    if (S.ws !== ws) return;
+    S.connected = true; setBanner();
+    if (S.token) ws.send(JSON.stringify({ t: 'resume', token: S.token }));
+    const q = S.queue; S.queue = [];
+    for (const o of q) ws.send(JSON.stringify(o));
+  };
+  ws.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch { return; } handle(m); };
+  ws.onclose = () => {
+    if (S.ws !== ws) return;
+    const was = S.connected;
+    S.ws = null; S.connected = false; setBanner();
+    if (S.me) { setTimeout(connect, was ? 600 : 2500); return; }
+    S.queue = [];
+    authBusy(false);
+    authErr(`Can't reach the chat server right now. It may be offline — try again in a bit.`);
+  };
+}
+function send(o) {
+  if (S.ws && S.ws.readyState === 1) S.ws.send(JSON.stringify(o));
+  else { S.queue.push(o); connect(); }
+}
+function setBanner() {
+  const off = !!S.me && !S.connected;
+  $('#banner').classList.toggle('hidden', !off);
+  $('#connText').textContent = off ? 'Reconnecting…' : 'Online';
+}
+
+/* ---------- server events ---------- */
+function handle(m) {
+  switch (m.t) {
+    case 'auth_ok':
+      S.token = m.token; store.set(tokenKey(), m.token);
+      S.me = m.me; S.st = m.state; S.online = new Set(m.online); S.msgs = {};
+      enterApp();
+      break;
+    case 'auth_error':
+      if (m.expired) { S.token = null; store.set(tokenKey(), null); }
+      if (S.me && m.expired) { resetSession(); showAuth(); }
+      authBusy(false); authErr(m.msg);
+      break;
+    case 'state':
+      S.st = m.state;
+      if (!chatInfo(S.active)) openChat('global', true);
+      renderSide(); renderHead();
+      break;
+    case 'presence': S.online = new Set(m.online); renderSide(); renderHead(); break;
+    case 'msg': onMsg(m.chat, m.msg); break;
+    case 'history': S.msgs[m.chat] = m.msgs; if (m.chat === S.active) renderMsgs(); break;
+    case 'open': openChat(m.chat); break;
+    case 'notice': toast(m.msg); break;
+    case 'error': toast(m.msg, true); break;
+    case 'logged_out': break;
+  }
+}
+
+/* ---------- auth screen ---------- */
+function setMode(mode) {
+  S.mode = mode;
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  $('#aPass').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  authErr(''); authBusy(false);
+}
+function authBusy(busy, label) {
+  const b = $('#authBtn');
+  b.disabled = busy;
+  b.textContent = busy ? (label || 'Connecting…') : (S.mode === 'login' ? 'Log in' : 'Create account');
+}
+const authErr = t => { $('#authErr').textContent = t || ''; };
+function showAuth() {
+  $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
+  document.title = 'Hangout'; closeModal(); authBusy(false);
+}
+function resetSession() {
+  S.me = null; S.st = null; S.token = null; S.msgs = {}; S.unread = {}; S.entered = false; S.active = 'global';
+  store.set(tokenKey(), null);
+}
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+$('#authForm').onsubmit = e => {
+  e.preventDefault();
+  authErr('');
+  S.token = null;
+  authBusy(true);
+  S.ready.then(() => send({ t: S.mode, username: $('#aUser').value.trim(), password: $('#aPass').value }));
+};
+
+/* ---------- app shell ---------- */
+function enterApp() {
+  $('#auth').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#aPass').value = '';
+  $('#meName').textContent = S.me;
+  $('#meAv').replaceChildren(avatar(S.me));
+  const first = !S.entered;
+  S.entered = true;
+  openChat(chatInfo(S.active) ? S.active : 'global', first && isMobile());
+  setBanner();
+}
+$('#logoutBtn').onclick = () => {
+  if (!confirm('Log out?')) return;
+  send({ t: 'logout' });
+  resetSession(); showAuth();
+};
+$('#backBtn').onclick = () => { $('#app').classList.remove('in-chat'); renderSide(); };
+$('#addFriendBtn').onclick = () => addFriendModal();
+$('#newGroupBtn').onclick = () => newGroupModal();
+$('#infoBtn').onclick = $('#chatSub').onclick = $('#chatTitle').onclick = () => infoModal(S.active);
+
+const isFriend = n => S.st.friends.some(f => f.name === n);
+const friendChat = n => (S.st.friends.find(f => f.name === n) || {}).chat;
+function chatInfo(c) {
+  if (!S.st) return null;
+  if (c === 'global') return { kind: 'global', title: 'Everyone', sub: `${S.online.size} online` };
+  const f = S.st.friends.find(x => x.chat === c);
+  if (f) return { kind: 'dm', title: f.name, sub: S.online.has(f.name) ? 'Online' : 'Offline', friend: f };
+  const g = S.st.groups.find(x => x.chat === c);
+  if (g) return { kind: 'group', title: g.name, sub: `${g.members.length} member${g.members.length === 1 ? '' : 's'}`, group: g };
+  return null;
+}
+function chatAvatar(c, i) {
+  if (i.kind === 'global') return el('span', { class: 'avatar sq global', text: '#' });
+  if (i.kind === 'group') return avatar(i.title, 'sq');
+  return avatar(i.title, S.online.has(i.title) ? 'dot' : '');
+}
+const chatVisible = c => c === S.active && !document.hidden && (!isMobile() || $('#app').classList.contains('in-chat'));
+
+function openChat(c, stayOnList) {
+  if (!chatInfo(c)) c = 'global';
+  S.active = c;
+  if (!stayOnList) { S.unread[c] = 0; $('#app').classList.add('in-chat'); }
+  renderSide(); renderHead(); renderMsgs(); updateTitle();
+  if (!S.msgs[c]) send({ t: 'history', chat: c });
+  if (!stayOnList && !isMobile()) $('#input').focus();
+}
+
+function renderHead() {
+  const i = chatInfo(S.active);
+  if (!i) return;
+  $('#chatTitle').textContent = i.title;
+  $('#chatSub').textContent = i.sub;
+  $('#chatAv').replaceChildren(chatAvatar(S.active, i));
+  $('#input').placeholder = i.kind === 'global' ? 'Message everyone' : `Message ${i.title}`;
+}
+
+function item(chat, av, name, sub) {
+  const n = chat === S.active && chatVisible(chat) ? 0 : (S.unread[chat] || 0);
+  return el('button', { class: 'item' + (chat === S.active && !isMobile() ? ' on' : ''), onclick: () => openChat(chat) },
+    av, el('div', { class: 'meta' }, el('div', { class: 'name', text: name }), el('div', { class: 'sub', text: sub })),
+    n ? el('span', { class: 'badge', text: n > 99 ? '99+' : n }) : null);
+}
+function renderSide() {
+  if (!S.st) return;
+  const gi = chatInfo('global');
+  $('#globalSlot').replaceChildren(item('global', chatAvatar('global', gi), 'Everyone', gi.sub));
+
+  const req = $('#requests');
+  req.textContent = '';
+  for (const n of S.st.incoming) {
+    req.append(el('div', { class: 'req' }, avatar(n),
+      el('div', { class: 'meta' }, el('div', { class: 'name', text: n }), el('div', { class: 'sub', text: 'wants to be friends' })),
+      el('button', { class: 'mini primary', text: 'Accept', onclick: () => send({ t: 'friend_respond', from: n, accept: true }) }),
+      el('button', { class: 'icon sm', title: 'Decline', html: ICON.x, onclick: () => send({ t: 'friend_respond', from: n, accept: false }) })));
+  }
+  for (const n of S.st.outgoing) {
+    req.append(el('div', { class: 'req' }, avatar(n),
+      el('div', { class: 'meta' }, el('div', { class: 'name', text: n }), el('div', { class: 'sub', text: 'request sent' })),
+      el('button', { class: 'mini ghost', text: 'Cancel', onclick: () => send({ t: 'friend_remove', user: n }) })));
+  }
+
+  const fl = $('#friendList');
+  fl.textContent = '';
+  const friends = [...S.st.friends].sort((a, b) => (b.last || 0) - (a.last || 0) || a.name.localeCompare(b.name));
+  if (!friends.length && !S.st.incoming.length) fl.append(el('div', { class: 'hint', text: 'No friends yet — tap + to add someone by username.' }));
+  for (const f of friends) {
+    const on = S.online.has(f.name);
+    fl.append(item(f.chat, avatar(f.name, on ? 'dot' : ''), f.name, on ? 'Online' : 'Offline'));
+  }
+
+  const gl = $('#groupList');
+  gl.textContent = '';
+  const groups = [...S.st.groups].sort((a, b) => (b.last || 0) - (a.last || 0) || a.name.localeCompare(b.name));
+  if (!groups.length) gl.append(el('div', { class: 'hint', text: 'No groups yet — tap + to start one.' }));
+  for (const g of groups) {
+    gl.append(item(g.chat, avatar(g.name, 'sq'), g.name, `${g.members.length} member${g.members.length === 1 ? '' : 's'}`));
+  }
+}
+function updateTitle() {
+  const n = Object.entries(S.unread).reduce((a, [c, v]) => a + (chatVisible(c) ? 0 : v), 0) + S.hiddenCount;
+  document.title = n ? `(${n}) Hangout` : 'Hangout';
+}
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) { S.hiddenCount = 0; if (chatVisible(S.active)) S.unread[S.active] = 0; renderSide(); updateTitle(); }
+});
+
+/* ---------- messages ---------- */
+function msgNode(m, prev) {
+  const frag = document.createDocumentFragment();
+  const newDay = !prev || dayKey(prev.ts) !== dayKey(m.ts);
+  if (newDay) frag.append(el('div', { class: 'day', text: dayLabel(m.ts) }));
+  if (m.sys) { frag.append(el('div', { class: 'sys', text: m.text })); return frag; }
+  const mine = m.from === S.me;
+  const cont = !newDay && prev && !prev.sys && prev.from === m.from && m.ts - prev.ts < 5 * 60e3;
+  const showName = !mine && !cont && !S.active.startsWith('dm:');
+  const row = el('div', { class: 'row' + (mine ? ' mine' : '') + (cont ? ' cont' : '') });
+  if (!mine) {
+    if (cont) row.append(el('span', { class: 'av-spacer' }));
+    else { const a = avatar(m.from); a.onclick = () => userModal(m.from); a.title = m.from; row.append(a); }
+  }
+  row.append(el('div', { class: 'body' },
+    showName ? el('button', { class: 'who', style: `--h:${hue(m.from)}`, text: m.from, onclick: () => userModal(m.from) }) : null,
+    el('div', { class: 'bubble', title: new Date(m.ts).toLocaleString() }, m.text, el('span', { class: 'time', text: hm(m.ts) }))));
+  frag.append(row);
+  return frag;
+}
+function renderMsgs() {
+  const box = $('#msgs');
+  box.textContent = '';
+  const list = S.msgs[S.active];
+  if (!list) { box.append(el('div', { class: 'empty', text: 'Loading…' })); return; }
+  if (!list.length) {
+    const i = chatInfo(S.active);
+    box.append(el('div', { class: 'empty' }, el('div', { class: 'big-emoji', text: '👋' }), el('div', { class: 'b', text: 'No messages yet' }),
+      el('div', { text: i && i.kind === 'dm' ? `Say hi to ${i.title}!` : 'Be the first to say something.' })));
+    return;
+  }
+  const frag = document.createDocumentFragment();
+  list.forEach((m, i) => frag.append(msgNode(m, list[i - 1])));
+  box.append(frag);
+  box.scrollTop = box.scrollHeight;
+}
+function onMsg(chat, m) {
+  const list = S.msgs[chat];
+  if (list) {
+    if (list.length && list[list.length - 1].id >= m.id) return;
+    list.push(m);
+  }
+  const rec = S.st && (S.st.friends.find(f => f.chat === chat) || S.st.groups.find(g => g.chat === chat));
+  if (rec) rec.last = m.ts;
+  if (chat === S.active && list) {
+    const box = $('#msgs');
+    if (box.querySelector('.empty')) renderMsgs();
+    else {
+      const near = box.scrollHeight - box.scrollTop - box.clientHeight < 150;
+      box.append(msgNode(m, list[list.length - 2]));
+      if (near || m.from === S.me) box.scrollTop = box.scrollHeight;
+    }
+  }
+  if (m.from !== S.me) {
+    if (!chatVisible(chat)) S.unread[chat] = (S.unread[chat] || 0) + 1;
+    else if (document.hidden) S.hiddenCount++;
+  }
+  renderSide(); updateTitle();
+}
+
+/* ---------- composer ---------- */
+const input = $('#input');
+const grow = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight + 2, 160) + 'px'; };
+input.addEventListener('input', grow);
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !isMobile()) { e.preventDefault(); $('#composer').requestSubmit(); }
+});
+$('#composer').onsubmit = e => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  send({ t: 'send', chat: S.active, text });
+  input.value = ''; grow();
+  if (!isMobile()) input.focus();
+};
+
+/* ---------- modals ---------- */
+function openModal(title, ...content) {
+  $('#modal').replaceChildren(
+    el('div', { class: 'm-head' }, el('h2', { text: title }), el('button', { class: 'icon', title: 'Close', html: ICON.x, onclick: closeModal })),
+    el('div', { class: 'm-body' }, ...content));
+  $('#modalWrap').classList.remove('hidden');
+  const f = $('#modal input:not([type=checkbox])');
+  if (f && !isMobile()) setTimeout(() => f.focus(), 30);
+}
+function closeModal() { $('#modalWrap').classList.add('hidden'); $('#modal').textContent = ''; }
+$('#modalWrap').addEventListener('mousedown', e => { if (e.target.id === 'modalWrap') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function relationButton(n) {
+  if (n === S.me) return el('span', { class: 'muted small', text: 'You' });
+  if (isFriend(n)) return el('button', { class: 'mini ghost', text: 'Message', onclick: () => { closeModal(); openChat(friendChat(n)); } });
+  if (S.st.incoming.includes(n)) return el('button', { class: 'mini primary', text: 'Accept', onclick: () => { send({ t: 'friend_respond', from: n, accept: true }); closeModal(); } });
+  if (S.st.outgoing.includes(n)) return el('span', { class: 'muted small', text: 'Requested' });
+  return el('button', { class: 'mini primary', text: 'Add friend', onclick: e => {
+    send({ t: 'friend_request', to: n });
+    e.currentTarget.replaceWith(el('span', { class: 'muted small', text: 'Requested' }));
+  } });
+}
+function personRow(n, extra) {
+  return el('div', { class: 'person' }, avatar(n, S.online.has(n) ? 'dot' : ''),
+    el('div', { class: 'meta' }, el('div', { class: 'name', text: n + (n === S.me ? ' (you)' : '') }), extra ? el('div', { class: 'sub', text: extra }) : null),
+    relationButton(n));
+}
+
+function addFriendModal() {
+  const inp = el('input', { class: 'field', placeholder: 'Their username', maxlength: 20, autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false' });
+  const form = el('form', { class: 'inline', onsubmit: e => {
+    e.preventDefault();
+    const v = inp.value.trim();
+    if (v) { send({ t: 'friend_request', to: v }); closeModal(); }
+  } }, inp, el('button', { class: 'primary', text: 'Send' }));
+  const people = [...S.online].filter(n => n !== S.me && !isFriend(n));
+  openModal('Add a friend', form,
+    people.length ? el('div', { class: 'sec2', text: 'Online now' }) : null,
+    people.map(n => personRow(n)));
+}
+
+function newGroupModal() {
+  const name = el('input', { class: 'field', placeholder: 'Group name', maxlength: 40, required: true });
+  const boxes = S.st.friends.map(f => {
+    const cb = el('input', { type: 'checkbox', value: f.name });
+    return { cb, row: el('label', { class: 'person' }, avatar(f.name, S.online.has(f.name) ? 'dot' : ''), el('div', { class: 'meta name', text: f.name }), cb) };
+  });
+  const form = el('form', { class: 'stack', onsubmit: e => {
+    e.preventDefault();
+    const n = name.value.trim();
+    if (!n) return;
+    send({ t: 'group_create', name: n, members: boxes.filter(b => b.cb.checked).map(b => b.cb.value) });
+    closeModal();
+  } }, name,
+    el('div', { class: 'sec2', text: 'Add friends' }),
+    boxes.length ? boxes.map(b => b.row) : el('div', { class: 'hint', style: 'padding:0', text: "You don't have any friends added yet. You can still make the group and add people later." }),
+    el('button', { class: 'primary', text: 'Create group' }));
+  openModal('New group', form);
+}
+
+function infoModal(c) {
+  const i = chatInfo(c);
+  if (!i) return;
+  if (i.kind === 'global') {
+    const names = [...S.online].sort((a, b) => a.localeCompare(b));
+    return openModal('Everyone', el('div', { class: 'muted small', text: 'The big room — every account can read and post here.' }),
+      el('div', { class: 'sec2', text: `Online now (${names.length})` }), names.map(n => personRow(n)));
+  }
+  if (i.kind === 'dm') return userModal(i.title);
+
+  const g = i.group, owner = g.owner === S.me, parts = [];
+  if (owner) {
+    const nameIn = el('input', { class: 'field', value: g.name, maxlength: 40 });
+    parts.push(el('form', { class: 'inline', onsubmit: e => {
+      e.preventDefault();
+      if (nameIn.value.trim()) { send({ t: 'group_rename', group: g.id, name: nameIn.value.trim() }); closeModal(); }
+    } }, nameIn, el('button', { class: 'ghost', text: 'Rename' })));
+  }
+  parts.push(el('div', { class: 'sec2', text: `Members (${g.members.length})` }));
+  for (const n of g.members) {
+    const row = personRow(n, n === g.owner ? 'Owner' : null);
+    if (owner && n !== S.me) {
+      row.append(el('button', { class: 'mini ghost danger-text', text: 'Remove', onclick: () => {
+        if (confirm(`Remove ${n} from ${g.name}?`)) { send({ t: 'group_kick', group: g.id, user: n }); closeModal(); }
+      } }));
+    }
+    parts.push(row);
+  }
+  const addable = S.st.friends.map(f => f.name).filter(n => !g.members.includes(n));
+  parts.push(el('div', { class: 'sec2', text: 'Add people' }));
+  if (addable.length) {
+    const sel = el('select', { class: 'field' }, addable.map(n => el('option', { value: n, text: n })));
+    parts.push(el('form', { class: 'inline', onsubmit: e => { e.preventDefault(); send({ t: 'group_add', group: g.id, user: sel.value }); closeModal(); } },
+      sel, el('button', { class: 'primary', text: 'Add' })));
+  } else parts.push(el('div', { class: 'hint', style: 'padding:0', text: 'All your friends are already here. Add more friends to invite them.' }));
+  parts.push(el('button', { class: 'danger', style: 'margin-top:12px', text: 'Leave group', onclick: () => {
+    if (confirm(`Leave ${g.name}?`)) { send({ t: 'group_leave', group: g.id }); closeModal(); }
+  } }));
+  openModal(g.name, ...parts);
+}
+
+function userModal(n) {
+  const on = S.online.has(n);
+  const parts = [el('div', { class: 'profile' }, avatar(n, 'big' + (on ? ' dot' : '')), el('div', { class: 'muted', text: on ? 'Online' : 'Offline' }), relationButton(n))];
+  if (isFriend(n)) {
+    parts.push(el('button', { class: 'danger', style: 'margin-top:14px', text: 'Remove friend', onclick: () => {
+      if (confirm(`Remove ${n} from your friends?`)) { send({ t: 'friend_remove', user: n }); closeModal(); }
+    } }));
+  }
+  openModal(n, ...parts);
+}
+
+function toast(t, bad) {
+  const n = el('div', { class: 'toast' + (bad ? ' bad' : ''), text: t });
+  $('#toasts').append(n);
+  setTimeout(() => n.classList.add('out'), 2800);
+  setTimeout(() => n.remove(), 3200);
+}
+
+/* ---------- theme: follow The Universe ---------- */
+// When this page runs inside The Universe it shares its storage, so it can read
+// the active theme and update live when someone picks a new one in Settings.
+const THEME_VARS = ['bg', 'bg2', 'bg3', 'border', 'text', 'muted', 'accent'];
+function hexLum(hex) {
+  let h = String(hex || '').trim().replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h.slice(0, 6), 16);
+  if (isNaN(n)) return null;
+  return (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
+}
+function applyUniverseTheme() {
+  let t = null;
+  try { t = JSON.parse(localStorage.getItem('universe-active-theme') || 'null'); } catch {}
+  const root = document.documentElement;
+  for (const k of THEME_VARS) {
+    if (t && /^#[0-9a-f]{3,8}$/i.test(t[k] || '')) root.style.setProperty('--' + k, t[k]);
+    else root.style.removeProperty('--' + k);
+  }
+  const css = getComputedStyle(root);
+  const bgLum = hexLum(css.getPropertyValue('--bg'));
+  const light = bgLum != null && bgLum > 0.5;
+  root.style.colorScheme = light ? 'light' : 'dark';
+  root.style.setProperty('--who-l', light ? '36%' : '68%');
+  const accLum = hexLum(css.getPropertyValue('--accent'));
+  root.style.setProperty('--on-accent', accLum != null && accLum > 0.55 ? '#111214' : '#ffffff');
+}
+applyUniverseTheme();
+addEventListener('storage', e => { if (e.key === 'universe-active-theme' || e.key === null) applyUniverseTheme(); });
+
+/* ---------- start ---------- */
+async function resolveServer() {
+  let addr = '';
+  if (SERVER_CONFIG_URL) {
+    try {
+      const res = await fetch(SERVER_CONFIG_URL, { cache: 'no-store' });
+      if (res.ok) { const j = await res.json(); addr = String((j && (j.server || j.url)) || ''); }
+    } catch {}
+  }
+  if (!addr && SERVER_URL && !/your-tunnel/i.test(SERVER_URL)) addr = SERVER_URL;
+  // Page opened straight from server.js (http://localhost:3000)? Use that.
+  if (!addr && /^https?:$/.test(location.protocol)) addr = location.origin;
+  if (!addr) { S.serverProblem = 'No chat server is set yet. Put your tunnel address in SERVER_URL at the top of chat.html.'; return; }
+  S.server = normServer(addr);
+}
+S.ready = resolveServer();
+setMode('login');
+S.token = store.get(tokenKey());
+if (S.token) { authBusy(true, 'Signing you in…'); S.ready.then(connect); }
+})();
+</script>
+</body>
+</html>
