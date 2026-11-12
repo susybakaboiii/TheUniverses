@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Universe Chat</title>
+<title>Hangout</title>
 <style>
 /* Colors match The Universe. When this page runs as a Universe tab it also
    picks up whatever Universe theme is active (see applyUniverseTheme). */
@@ -152,6 +152,40 @@ label.person{cursor:pointer}
 .toast.bad{color:var(--danger)}
 .toast.out{opacity:0;transform:translateY(6px)}
 
+/* ---------- photos, videos & GIFs ---------- */
+#composer{flex-wrap:wrap}
+#tray{flex-basis:100%;display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px}
+#tray:empty{display:none}
+.chip{position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg3);flex:none}
+.chip img,.chip video{width:100%;height:100%;object-fit:cover;display:block}
+.chip .x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center}
+.chip .tag{position:absolute;left:3px;bottom:3px;font-size:9px;font-weight:800;background:rgba(0,0,0,.65);color:#fff;border-radius:4px;padding:0 4px}
+.tool{width:40px;height:40px;border-radius:9px;display:grid;place-items:center;color:var(--muted);flex:none;border:1px solid transparent}
+.tool:hover{color:var(--text);background:var(--bg3);border-color:var(--border)}
+.tool.gif{font-size:11px;font-weight:800;letter-spacing:.04em}
+.media{display:block;position:relative;border-radius:7px;overflow:hidden;background:var(--bg2);max-width:100%}
+.media img,.media video{display:block;width:100%;height:100%;object-fit:cover}
+.media img{cursor:zoom-in}
+.media.gone{display:grid;place-items:center;color:var(--muted);font-size:12px;padding:18px 12px;width:220px!important;aspect-ratio:auto!important}
+.bubble.has-media{padding:4px}
+.bubble.has-media .cap{padding:5px 7px 2px}
+.bubble.has-media > .time{margin:5px 5px 1px 10px}
+.time.over{position:absolute;right:6px;bottom:6px;float:none;margin:0;background:rgba(0,0,0,.55);color:#fff;opacity:1;border-radius:6px;padding:1px 6px;pointer-events:none}
+.gif-badge{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:800;background:rgba(0,0,0,.55);color:#fff;border-radius:4px;padding:1px 5px;pointer-events:none}
+.progress{height:4px;width:180px;max-width:100%;border-radius:2px;margin-top:6px;overflow:hidden;background:color-mix(in srgb,var(--on-accent) 25%,transparent)}
+.progress i{display:block;height:100%;width:0;background:var(--on-accent);transition:width .2s}
+#main{position:relative}
+#main.drag::after{content:"Drop to add photos or videos";position:absolute;inset:0;z-index:5;display:grid;place-items:center;font-weight:700;font-size:15px;pointer-events:none;
+  background:color-mix(in srgb,var(--bg) 75%,transparent);outline:2px dashed var(--accent);outline-offset:-10px}
+.modal.wide{width:min(560px,100%)}
+.gif-grid{columns:3 140px;column-gap:6px}
+.gif-grid img{width:100%;display:block;margin-bottom:6px;border-radius:6px;cursor:pointer;background:var(--bg3);break-inside:avoid}
+.gif-grid img:hover{outline:2px solid var(--accent);outline-offset:-2px}
+.credit{font-size:11px;color:var(--muted);text-align:right}
+#lightbox{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.9);display:grid;place-items:center;padding:20px;cursor:zoom-out}
+#lightbox img{max-width:100%;max-height:calc(100vh - 40px);object-fit:contain;border-radius:6px}
+#lightbox a{position:absolute;top:14px;right:14px;cursor:pointer;text-decoration:none}
+
 @media (max-width:760px){
   #side{width:100%;border-right:0}
   #app:not(.in-chat) #main{display:none}
@@ -166,7 +200,7 @@ label.person{cursor:pointer}
 <!-- ============ Sign in ============ -->
 <div id="auth">
   <form class="card" id="authForm" autocomplete="on">
-    <div class="logo">Universe <b>Chat</b></div>
+    <div class="logo">Hang<b>out</b></div>
     <p class="tagline">Talk to everyone, or just your people.</p>
     <div class="tabs"><button type="button" data-mode="login" class="on">Log in</button><button type="button" data-mode="register">Sign up</button></div>
     <label>Username<input class="field" id="aUser" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="20" required></label>
@@ -179,7 +213,7 @@ label.person{cursor:pointer}
 <!-- ============ App ============ -->
 <div id="app" class="hidden">
   <aside id="side">
-    <div class="side-head"><div class="logo">Universe <b>Chat</b></div></div>
+    <div class="side-head"><div class="logo">Hang<b>out</b></div></div>
     <div class="side-scroll">
       <div id="globalSlot"></div>
       <div class="sec"><span>Friends</span><button class="icon sm" id="addFriendBtn" title="Add a friend"></button></div>
@@ -205,6 +239,10 @@ label.person{cursor:pointer}
     <div class="banner hidden" id="banner">Reconnecting…</div>
     <div id="msgs"></div>
     <form id="composer">
+      <div id="tray"></div>
+      <input type="file" id="fileIn" accept="image/*,video/*" multiple hidden>
+      <button type="button" class="tool" id="attachBtn" title="Send photos or videos"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg></button>
+      <button type="button" class="tool gif hidden" id="gifBtn" title="Send a GIF">GIF</button>
       <textarea id="input" rows="1" placeholder="Message" maxlength="2000"></textarea>
       <button class="send" title="Send"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></button>
     </form>
@@ -221,7 +259,7 @@ label.person{cursor:pointer}
    then paste the https://....trycloudflare.com address it prints here.
    (https:// is fine, it gets turned into wss:// automatically.)
    ====================================================================== */
-const SERVER_URL = "https://smithsonian-battle-judgment-reflections.trycloudflare.com";
+const SERVER_URL = "https://your-tunnel.trycloudflare.com";
 
 /* Optional: a JSON file like  { "server": "https://....trycloudflare.com" }
    If set, the address is read from there first, so you can switch tunnels by
@@ -256,6 +294,7 @@ const store = {
 const ICON = {
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  xs: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
 };
 $('#addFriendBtn').innerHTML = ICON.plus;
 $('#newGroupBtn').innerHTML = ICON.plus;
@@ -279,6 +318,7 @@ const S = {
   server: '', ws: null, queue: [], connected: false,
   token: null, me: null, st: null, online: new Set(),
   active: 'global', msgs: {}, unread: {}, hiddenCount: 0, entered: false, mode: 'login',
+  features: {}, httpBase: '', tray: [], pending: [], atBottom: true,
 };
 function normServer(s) {
   s = (s || '').trim() || 'localhost:3000';
@@ -330,6 +370,8 @@ function handle(m) {
     case 'auth_ok':
       S.token = m.token; store.set(tokenKey(), m.token);
       S.me = m.me; S.st = m.state; S.online = new Set(m.online); S.msgs = {};
+      S.features = m.features || {};
+      $('#gifBtn').classList.toggle('hidden', !S.features.gifs);
       enterApp();
       break;
     case 'auth_error':
@@ -367,10 +409,11 @@ function authBusy(busy, label) {
 const authErr = t => { $('#authErr').textContent = t || ''; };
 function showAuth() {
   $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
-  document.title = 'Universe Chat'; closeModal(); authBusy(false);
+  document.title = 'Hangout'; closeModal(); authBusy(false);
 }
 function resetSession() {
   S.me = null; S.st = null; S.token = null; S.msgs = {}; S.unread = {}; S.entered = false; S.active = 'global';
+  S.tray.forEach(it => URL.revokeObjectURL(it.url)); S.tray = []; renderTray();
   store.set(tokenKey(), null);
 }
 document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
@@ -483,13 +526,43 @@ function renderSide() {
 }
 function updateTitle() {
   const n = Object.entries(S.unread).reduce((a, [c, v]) => a + (chatVisible(c) ? 0 : v), 0) + S.hiddenCount;
-  document.title = n ? `(${n}) Universe Chat` : 'Universe Chat';
+  document.title = n ? `(${n}) Hangout` : 'Hangout';
 }
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { S.hiddenCount = 0; if (chatVisible(S.active)) S.unread[S.active] = 0; renderSide(); updateTitle(); }
 });
 
 /* ---------- messages ---------- */
+const mediaUrl = src => (/^https?:\/\//i.test(src) ? src : S.httpBase + src);
+const keepBottom = () => { if (S.atBottom) { const b = $('#msgs'); b.scrollTop = b.scrollHeight; } };
+function mediaNode(md, overlayTime) {
+  const src = mediaUrl(md.src);
+  const box = el('div', { class: 'media' });
+  if (md.w && md.h) {
+    const W = Math.round(Math.min(300, md.w, 340 * md.w / md.h));
+    box.style.width = Math.max(W, 80) + 'px';   // fixed px so the bubble hugs the media (max-width:100% keeps it on screen)
+    box.style.aspectRatio = `${md.w} / ${md.h}`;
+  } else box.style.width = '280px';
+  const gone = () => {
+    box.className = 'media gone';
+    box.textContent = md.kind === 'video' ? 'Video no longer available' : 'Image no longer available';
+  };
+  if (md.kind === 'video') {
+    const v = el('video', { src, controls: true, preload: 'metadata', playsinline: true });
+    v.addEventListener('error', gone);
+    v.addEventListener('loadedmetadata', keepBottom);
+    box.append(v);
+  } else {
+    const img = el('img', { src, alt: md.kind === 'gif' ? 'GIF' : 'Photo', loading: 'lazy', decoding: 'async' });
+    img.onerror = gone;
+    img.onload = keepBottom;
+    img.onclick = () => lightbox(src);
+    box.append(img);
+    if (md.kind === 'gif') box.append(el('span', { class: 'gif-badge', text: 'GIF' }));
+    if (overlayTime) box.append(overlayTime);
+  }
+  return box;
+}
 function msgNode(m, prev) {
   const frag = document.createDocumentFragment();
   const newDay = !prev || dayKey(prev.ts) !== dayKey(m.ts);
@@ -503,9 +576,15 @@ function msgNode(m, prev) {
     if (cont) row.append(el('span', { class: 'av-spacer' }));
     else { const a = avatar(m.from); a.onclick = () => userModal(m.from); a.title = m.from; row.append(a); }
   }
+  const time = el('span', { class: 'time', text: hm(m.ts) });
+  const bubble = el('div', { class: 'bubble' + (m.media ? ' has-media' : ''), title: new Date(m.ts).toLocaleString() });
+  if (!m.media) bubble.append(m.text, time);
+  else if (m.text) bubble.append(mediaNode(m.media), el('div', { class: 'cap' }, m.text, time));
+  else if (m.media.kind === 'video') bubble.append(mediaNode(m.media), time);
+  else { time.classList.add('over'); bubble.append(mediaNode(m.media, time)); }
   row.append(el('div', { class: 'body' },
     showName ? el('button', { class: 'who', style: `--h:${hue(m.from)}`, text: m.from, onclick: () => userModal(m.from) }) : null,
-    el('div', { class: 'bubble', title: new Date(m.ts).toLocaleString() }, m.text, el('span', { class: 'time', text: hm(m.ts) }))));
+    bubble));
   frag.append(row);
   return frag;
 }
@@ -514,7 +593,8 @@ function renderMsgs() {
   box.textContent = '';
   const list = S.msgs[S.active];
   if (!list) { box.append(el('div', { class: 'empty', text: 'Loading…' })); return; }
-  if (!list.length) {
+  const pend = S.pending.filter(p => p.chat === S.active).map(p => p.node);
+  if (!list.length && !pend.length) {
     const i = chatInfo(S.active);
     box.append(el('div', { class: 'empty' }, el('div', { class: 'big-emoji', text: '👋' }), el('div', { class: 'b', text: 'No messages yet' }),
       el('div', { text: i && i.kind === 'dm' ? `Say hi to ${i.title}!` : 'Be the first to say something.' })));
@@ -522,8 +602,10 @@ function renderMsgs() {
   }
   const frag = document.createDocumentFragment();
   list.forEach((m, i) => frag.append(msgNode(m, list[i - 1])));
+  frag.append(...pend);
   box.append(frag);
   box.scrollTop = box.scrollHeight;
+  S.atBottom = true;
 }
 function onMsg(chat, m) {
   const list = S.msgs[chat];
@@ -538,8 +620,8 @@ function onMsg(chat, m) {
     if (box.querySelector('.empty')) renderMsgs();
     else {
       const near = box.scrollHeight - box.scrollTop - box.clientHeight < 150;
-      box.append(msgNode(m, list[list.length - 2]));
-      if (near || m.from === S.me) box.scrollTop = box.scrollHeight;
+      box.insertBefore(msgNode(m, list[list.length - 2]), box.querySelector('.pending'));
+      if (near || m.from === S.me) { box.scrollTop = box.scrollHeight; S.atBottom = true; }
     }
   }
   if (m.from !== S.me) {
@@ -548,6 +630,18 @@ function onMsg(chat, m) {
   }
   renderSide(); updateTitle();
 }
+$('#msgs').addEventListener('scroll', () => {
+  const b = $('#msgs');
+  S.atBottom = b.scrollHeight - b.scrollTop - b.clientHeight < 60;
+});
+function lightbox(src) {
+  closeLightbox();
+  const lb = el('div', { id: 'lightbox', onclick: e => { if (e.target.tagName !== 'A') closeLightbox(); } },
+    el('img', { src, alt: '' }),
+    el('a', { class: 'ghost', href: src, target: '_blank', rel: 'noopener', text: 'Open original' }));
+  document.body.append(lb);
+}
+const closeLightbox = () => { const lb = document.getElementById('lightbox'); if (lb) lb.remove(); };
 
 /* ---------- composer ---------- */
 const input = $('#input');
@@ -559,11 +653,193 @@ input.addEventListener('keydown', e => {
 $('#composer').onsubmit = e => {
   e.preventDefault();
   const text = input.value.trim();
-  if (!text) return;
-  send({ t: 'send', chat: S.active, text });
+  if (!text && !S.tray.length) return;
+  const items = S.tray;
+  S.tray = [];
+  renderTray();
   input.value = ''; grow();
   if (!isMobile()) input.focus();
+  if (items.length) sendMedia(items, text, S.active);
+  else send({ t: 'send', chat: S.active, text });
 };
+
+/* ---------- attachments ---------- */
+const MB = 1048576;
+function fileKind(f) {
+  const t = (f.type || '').toLowerCase(), n = (f.name || '').toLowerCase();
+  if (t === 'image/gif' || n.endsWith('.gif')) return 'gif';
+  if (t.startsWith('image/') || /\.(jpe?g|png|webp|avif|heic|heif|bmp)$/.test(n)) return 'image';
+  if (t.startsWith('video/') || /\.(mp4|m4v|mov|webm)$/.test(n)) return 'video';
+  return null;
+}
+function addFiles(files) {
+  for (const f of [...files]) {
+    if (S.tray.length >= 10) { toast('You can attach up to 10 files at a time.', true); break; }
+    const kind = fileKind(f);
+    if (!kind) { toast(`"${f.name}" isn't a photo, GIF or video.`, true); continue; }
+    const max = kind === 'video' ? S.features.maxVideo : kind === 'gif' ? S.features.maxImage : 0; // big photos get shrunk
+    if (max && f.size > max) { toast(`"${f.name}" is too big. The limit is ${Math.round(max / MB)} MB.`, true); continue; }
+    S.tray.push({ file: f, kind, url: URL.createObjectURL(f) });
+  }
+  renderTray();
+  if (!isMobile()) input.focus();
+}
+function renderTray() {
+  const t = $('#tray');
+  t.textContent = '';
+  S.tray.forEach((it, i) => {
+    const thumb = it.kind === 'video'
+      ? el('video', { src: it.url + '#t=0.1', muted: true, preload: 'metadata', playsinline: true })
+      : el('img', { src: it.url, alt: '' });
+    t.append(el('div', { class: 'chip' }, thumb,
+      it.kind !== 'image' ? el('span', { class: 'tag', text: it.kind === 'gif' ? 'GIF' : 'VIDEO' }) : null,
+      el('button', { type: 'button', class: 'x', title: 'Remove', html: ICON.xs, onclick: () => {
+        URL.revokeObjectURL(it.url); S.tray.splice(i, 1); renderTray();
+      } })));
+  });
+}
+$('#attachBtn').onclick = () => $('#fileIn').click();
+$('#fileIn').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+input.addEventListener('paste', e => {
+  const files = [...((e.clipboardData && e.clipboardData.files) || [])];
+  if (files.length) { e.preventDefault(); addFiles(files); }
+});
+{
+  const main = $('#main');
+  let depth = 0;
+  const hasFiles = e => e.dataTransfer && [...e.dataTransfer.types].includes('Files');
+  main.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); depth++; main.classList.add('drag'); });
+  main.addEventListener('dragover', e => { if (hasFiles(e)) e.preventDefault(); });
+  main.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; main.classList.remove('drag'); } });
+  main.addEventListener('drop', e => {
+    if (!hasFiles(e)) return;
+    e.preventDefault(); depth = 0; main.classList.remove('drag');
+    addFiles(e.dataTransfer.files);
+  });
+}
+
+const loadImage = src => new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = src; });
+const videoSize = src => new Promise(ok => {
+  const v = document.createElement('video');
+  const t = setTimeout(() => ok({}), 5000);
+  v.preload = 'metadata'; v.muted = true;
+  v.onloadedmetadata = () => { clearTimeout(t); ok({ w: v.videoWidth || undefined, h: v.videoHeight || undefined }); };
+  v.onerror = () => { clearTimeout(t); ok({}); };
+  v.src = src;
+});
+const canvasBlob = (c, type, q) => new Promise(r => c.toBlob(r, type, q));
+// Photos are shrunk to at most 2048px before upload (GIFs and videos are sent as-is).
+async function prepare(it) {
+  const f = it.file;
+  if (it.kind === 'video') return { blob: f, ...(await videoSize(it.url)) };
+  let img;
+  try { img = await loadImage(it.url); }
+  catch { throw new Error(`"${f.name}" can't be opened here. Try saving it as a JPG or PNG.`); }
+  let w = img.naturalWidth, h = img.naturalHeight;
+  if (it.kind === 'gif') return { blob: f, w, h };
+  const MAX = 2048;
+  if (/^image\/(png|jpeg|webp)$/.test(f.type) && w <= MAX && h <= MAX && f.size <= 2.5 * MB) return { blob: f, w, h };
+  const k = Math.min(1, MAX / Math.max(w, h));
+  w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0, w, h);
+  let blob = await canvasBlob(c, 'image/webp', 0.86);
+  if (!blob || blob.type !== 'image/webp') {          // browsers without WebP saving: JPG on white
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    blob = await canvasBlob(c, 'image/jpeg', 0.86);
+  }
+  if (!blob) throw new Error("Couldn't prepare that photo.");
+  return { blob, w, h };
+}
+function uploadBlob(blob, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', S.httpBase + '/upload');
+    xhr.setRequestHeader('X-Token', S.token || '');
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.onload = () => {
+      let j = {};
+      try { j = JSON.parse(xhr.responseText); } catch {}
+      if (xhr.status === 200 && j.id) resolve(j);
+      else reject(new Error(j.error || (xhr.status === 413 ? 'That file is too big.' : `Upload failed (${xhr.status}).`)));
+    };
+    xhr.onerror = () => reject(new Error("Upload failed. Couldn't reach the server."));
+    xhr.send(blob);
+  });
+}
+function addPending(chat, it) {
+  const bar = el('i');
+  const label = el('div', { class: 'small', text: it.kind === 'video' ? 'Uploading video…' : 'Uploading…' });
+  const node = el('div', { class: 'row mine pending' }, el('div', { class: 'body' }, el('div', { class: 'bubble' }, label, el('div', { class: 'progress' }, bar))));
+  const rec = { chat, node };
+  S.pending.push(rec);
+  if (chat === S.active && S.msgs[chat]) {
+    const box = $('#msgs');
+    if (box.querySelector('.empty')) box.textContent = '';
+    box.append(node);
+    box.scrollTop = box.scrollHeight;
+  }
+  return {
+    set(f) {
+      const pct = Math.round(f * 100);
+      bar.style.width = pct + '%';
+      label.textContent = pct >= 100 ? 'Finishing…' : `Uploading… ${pct}%`;
+    },
+    done() { node.remove(); S.pending = S.pending.filter(x => x !== rec); },
+  };
+}
+async function sendMedia(items, text, chat) {
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    const p = addPending(chat, it);
+    try {
+      const prep = await prepare(it);
+      const up = await uploadBlob(prep.blob, f => p.set(f));
+      send({ t: 'send', chat, text: i === 0 ? text : '', media: { upload: up.id, w: prep.w, h: prep.h } });
+    } catch (err) {
+      toast(err.message || 'Upload failed.', true);
+      if (i === 0 && text) send({ t: 'send', chat, text }); // don't lose what they typed
+    } finally {
+      p.done();
+      URL.revokeObjectURL(it.url);
+    }
+  }
+}
+
+/* ---------- GIF search ---------- */
+$('#gifBtn').onclick = () => gifModal();
+function gifModal() {
+  const chat = S.active;
+  const q = el('input', { class: 'field', placeholder: 'Search GIFs', maxlength: 50, autocomplete: 'off', spellcheck: 'false' });
+  const status = el('div', { class: 'hint', style: 'padding:0' });
+  const grid = el('div', { class: 'gif-grid' });
+  let seq = 0, timer;
+  const load = async () => {
+    const my = ++seq;
+    status.textContent = 'Loading…';
+    try {
+      const r = await fetch(`${S.httpBase}/gifs?q=${encodeURIComponent(q.value.trim())}`, { headers: { 'X-Token': S.token || '' } });
+      const j = await r.json().catch(() => ({}));
+      if (my !== seq) return;
+      if (!r.ok) throw new Error(j.error || 'GIF search failed.');
+      grid.textContent = '';
+      status.textContent = j.results.length ? '' : 'No GIFs found.';
+      for (const g of j.results) {
+        grid.append(el('img', {
+          src: g.preview, alt: 'GIF', loading: 'lazy', style: g.w && g.h ? `aspect-ratio:${g.w}/${g.h}` : null,
+          onclick: () => { send({ t: 'send', chat, text: '', media: { giphy: g.id } }); closeModal(); },
+        }));
+      }
+    } catch (e) { if (my === seq) status.textContent = e.message; }
+  };
+  q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(load, 400); });
+  openModal('Send a GIF', q, status, grid, el('div', { class: 'credit', text: 'Powered by GIPHY' }));
+  $('#modal').classList.add('wide');
+  load();
+}
 
 /* ---------- modals ---------- */
 function openModal(title, ...content) {
@@ -574,9 +850,9 @@ function openModal(title, ...content) {
   const f = $('#modal input:not([type=checkbox])');
   if (f && !isMobile()) setTimeout(() => f.focus(), 30);
 }
-function closeModal() { $('#modalWrap').classList.add('hidden'); $('#modal').textContent = ''; }
+function closeModal() { $('#modalWrap').classList.add('hidden'); $('#modal').textContent = ''; $('#modal').className = 'modal'; }
 $('#modalWrap').addEventListener('mousedown', e => { if (e.target.id === 'modalWrap') closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeLightbox(); } });
 
 function relationButton(n) {
   if (n === S.me) return el('span', { class: 'muted small', text: 'You' });
@@ -729,6 +1005,7 @@ async function resolveServer() {
   if (!addr && /^https?:$/.test(location.protocol)) addr = location.origin;
   if (!addr) { S.serverProblem = 'No chat server is set yet. Put your tunnel address in SERVER_URL at the top of chat.html.'; return; }
   S.server = normServer(addr);
+  S.httpBase = S.server.replace(/^ws/i, 'http');
 }
 S.ready = resolveServer();
 setMode('login');
