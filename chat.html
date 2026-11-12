@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Hangout</title>
+<title>Universe Chat</title>
 <style>
 /* Colors match The Universe. When this page runs as a Universe tab it also
    picks up whatever Universe theme is active (see applyUniverseTheme). */
@@ -367,7 +367,7 @@ function authBusy(busy, label) {
 const authErr = t => { $('#authErr').textContent = t || ''; };
 function showAuth() {
   $('#app').classList.add('hidden'); $('#auth').classList.remove('hidden');
-  document.title = 'Hangout'; closeModal(); authBusy(false);
+  document.title = 'Universe Chat'; closeModal(); authBusy(false);
 }
 function resetSession() {
   S.me = null; S.st = null; S.token = null; S.msgs = {}; S.unread = {}; S.entered = false; S.active = 'global';
@@ -483,7 +483,7 @@ function renderSide() {
 }
 function updateTitle() {
   const n = Object.entries(S.unread).reduce((a, [c, v]) => a + (chatVisible(c) ? 0 : v), 0) + S.hiddenCount;
-  document.title = n ? `(${n}) Hangout` : 'Hangout';
+  document.title = n ? `(${n}) Universe Chat` : 'Universe Chat';
 }
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { S.hiddenCount = 0; if (chatVisible(S.active)) S.unread[S.active] = 0; renderSide(); updateTitle(); }
