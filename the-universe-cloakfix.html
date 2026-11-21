@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  html{
+    --sb-thumb:color-mix(in srgb, var(--muted, #9a8fb8) 45%, var(--bg, #120e1c));
+    scrollbar-color:var(--sb-thumb) transparent;
+    --bg-dim:color-mix(in srgb, var(--bg, #120e1c) 62%, transparent);
+    /* glass surfaces follow the active theme */
+    --glass:color-mix(in srgb, var(--bg2, #191327) 40%, transparent);
+    --glass-strong:color-mix(in srgb, var(--bg2, #191327) 78%, transparent);
+    --glass-line:color-mix(in srgb, var(--text, #f1ecff) 13%, transparent);
+    --soft:color-mix(in srgb, var(--accent, #a77bff) 20%, transparent);
+    --font:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  body{
+    margin:0;
+    background:var(--bg, #120e1c);
+    background-size:cover; background-position:center; background-attachment:fixed;
+    color:var(--text, #f1ecff);
+    font:14px var(--font);
+    overflow:hidden;
+  }
+  /* soft glow + faint grid behind everything */
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(1000px 560px at 50% -12%, color-mix(in srgb, var(--accent, #a77bff) 22%, transparent), transparent 70%),
+      linear-gradient(color-mix(in srgb, var(--text, #fff) 4%, transparent) 1px, transparent 1px) 0 0 / 52px 52px,
+      linear-gradient(90deg, color-mix(in srgb, var(--text, #fff) 4%, transparent) 1px, transparent 1px) 0 0 / 52px 52px;
+  }
+  @supports not (scrollbar-color:auto){
+    ::-webkit-scrollbar{width:10px; height:8px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{
+      background:var(--sb-thumb); border-radius:8px;
+      border:3px solid var(--bg, #120e1c);
+    }
+    ::-webkit-scrollbar-thumb:hover{background:var(--muted, #9a8fb8)}
+    ::-webkit-scrollbar-corner{background:transparent}
+  }
+
+  /* ---------- glass sidebar (right side) ---------- */
+  #bar{
+    position:fixed; z-index:6; right:16px; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:10px 8px; border-radius:24px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid var(--glass-line);
+    box-shadow:0 12px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.07);
+  }
+  #tabs{display:flex; flex-direction:column; align-items:center; gap:6px}
+  .bar-sep{width:22px; height:1px; background:var(--glass-line); margin:3px 0; flex:none}
+
+  .tab{
+    position:relative; flex:none;
+    width:44px; height:44px; display:grid; place-items:center;
+    padding:0; border:0; border-radius:50%; background:transparent;
+    font:inherit; color:var(--muted, #9a8fb8); cursor:pointer;
+    transition:color .18s;
+  }
+  .tab > *{position:relative}
+  .tab svg{width:20px; height:20px; display:block}
+  .tab-letter{font-size:16px; font-weight:700; line-height:1}
+  /* the selection: a small round bubble behind the icon */
+  .tab::before{
+    content:''; position:absolute; inset:7px; border-radius:50%;
+    background:transparent; transform:scale(.6); opacity:0;
+    transition:transform .2s, opacity .2s, background .2s;
+  }
+  .tab:hover{color:var(--text, #fff)}
+  .tab:hover::before{opacity:1; transform:scale(1); background:color-mix(in srgb, var(--text, #fff) 8%, transparent)}
+  .tab.active{color:var(--accent, #a77bff)}
+  .tab.active::before{
+    opacity:1; transform:scale(1); background:var(--soft);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent, #a77bff) 40%, transparent),
+               0 0 14px color-mix(in srgb, var(--accent, #a77bff) 35%, transparent);
+  }
+  .tab:focus-visible{outline:2px solid var(--accent, #a77bff); outline-offset:1px}
+  /* hover label */
+  .tab::after{
+    content:attr(data-label); position:absolute; right:calc(100% + 14px); top:50%;
+    transform:translate(6px, -50%); opacity:0; pointer-events:none; white-space:nowrap;
+    padding:6px 11px; border-radius:10px; font-size:12px; font-weight:500;
+    color:var(--text, #fff); background:var(--glass-strong);
+    border:1px solid var(--glass-line); box-shadow:0 6px 20px rgba(0,0,0,.3);
+    transition:opacity .15s, transform .15s;
+  }
+  .tab:hover::after, .tab:focus-visible::after{opacity:1; transform:translate(0, -50%)}
+  .tab.cog svg{transition:transform .3s}
+  .tab.cog:hover svg, .tab.cog.active svg{transform:rotate(60deg)}
+
+  /* ---------- tab panels ---------- */
+  #home{position:absolute; inset:0; overflow:auto; z-index:1; padding-right:92px}
+  .tabpanel{display:none}
+  .tabpanel.active{display:block}
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    padding:13vh 24px 48px;
+  }
+  .hero h1{
+    margin:0; font-size:clamp(34px, 6vw, 74px); font-weight:700;
+    letter-spacing:-.02em; line-height:1.08; color:var(--text, #fff);
+  }
+  .hero h1 b{
+    font-weight:700;
+    background:linear-gradient(115deg, var(--text, #fff) 10%, var(--accent, #a77bff) 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  #search{
+    width:min(640px, 100%); margin-top:38px;
+    font:inherit; font-size:17px; color:var(--text, #fff); text-align:center;
+    background:color-mix(in srgb, var(--bg3, #211936) 75%, transparent);
+    border:1px solid var(--glass-line); border-radius:18px;
+    padding:17px 22px; outline:none;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+    transition:border-color .18s, box-shadow .18s;
+  }
+  #search::placeholder{color:var(--muted, #9a8fb8); font-style:italic}
+  #search:focus{
+    border-color:color-mix(in srgb, var(--accent, #a77bff) 70%, transparent);
+    box-shadow:0 0 0 4px var(--soft), 0 10px 30px rgba(0,0,0,.25);
+  }
+  .hero-sub{margin-top:14px; font-size:13px; color:var(--muted, #9a8fb8); white-space:pre-wrap; tab-size:4; max-width:640px; transition:opacity .35s}
+  .hero-sub.fade{opacity:0}
+
+  /* ---------- games grid ---------- */
+  .games{max-width:1320px; margin:0 auto; padding:0 32px 72px}
+  .grid-head{
+    display:flex; align-items:center; gap:10px; margin:0 2px 16px;
+    padding-bottom:12px; border-bottom:1px solid var(--glass-line);
+  }
+  .grid-head h2{margin:0; font-size:17px; font-weight:600; color:var(--text, #fff)}
+  .count{
+    font-size:12px; font-weight:500; color:var(--accent, #a77bff);
+    background:var(--soft); border-radius:999px; padding:3px 10px;
+  }
+  .count:empty{display:none}
+  #grid{
+    --card-min:170px;
+    display:grid; gap:16px;
+    grid-template-columns:repeat(auto-fill, minmax(var(--card-min), 1fr));
+  }
+  /* grid size setting */
+  #grid[data-size="compact"]{--card-min:128px; gap:12px}
+  #grid[data-size="compact"] .meta{padding:8px 10px 9px}
+  #grid[data-size="compact"] .meta .t{font-size:12.5px}
+  #grid[data-size="compact"] .meta .d{font-size:11px}
+  #grid[data-size="compact"] .thumb{font-size:30px}
+  #grid[data-size="large"]{--card-min:250px; gap:20px}
+  #grid[data-size="large"] .meta .t{font-size:15px}
+  #grid[data-size="large"] .thumb{font-size:52px}
+  #grid[data-size="xl"]{--card-min:340px; gap:24px}
+  #grid[data-size="xl"] .meta{padding:13px 15px 15px}
+  #grid[data-size="xl"] .meta .t{font-size:17px}
+  #grid[data-size="xl"] .meta .d{font-size:13px}
+  #grid[data-size="xl"] .thumb{font-size:64px}
+  .card{
+    display:flex; flex-direction:column; cursor:pointer; overflow:hidden;
+    background:color-mix(in srgb, var(--bg3, #211936) 85%, transparent);
+    border:1px solid var(--glass-line); border-radius:10px;
+    transition:transform .18s, border-color .18s, box-shadow .18s;
+    outline:none;
+  }
+  .card:hover, .card:focus-visible{
+    transform:translateY(-3px);
+    border-color:color-mix(in srgb, var(--accent, #a77bff) 65%, transparent);
+    box-shadow:0 12px 28px rgba(0,0,0,.35), 0 0 0 1px color-mix(in srgb, var(--accent, #a77bff) 25%, transparent);
+  }
+  .thumb{
+    position:relative; aspect-ratio:1/1; width:100%; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--bg2, #191327);
+    color:#fff; font-size:40px; font-weight:700; letter-spacing:.02em;
+  }
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .3s, filter .3s}
+  .card:hover .thumb img{transform:scale(1.05); filter:brightness(1.08)}
+  /* tiles for games without a picture */
+  .thumb.initial{
+    background:
+      radial-gradient(130% 100% at 0% 0%, hsl(var(--h) 60% 52% / .55), transparent 55%),
+      linear-gradient(145deg, hsl(var(--h) 42% 26%), hsl(calc(var(--h) + 25) 50% 15%));
+    text-shadow:0 2px 14px rgba(0,0,0,.35);
+  }
+  .thumb.initial::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(rgba(255,255,255,.12) 1px, transparent 1.4px) 0 0 / 14px 14px;
+    -webkit-mask-image:linear-gradient(200deg, #000, transparent 70%);
+    mask-image:linear-gradient(200deg, #000, transparent 70%);
+  }
+  .meta{padding:10px 12px 12px; border-top:1px solid var(--glass-line)}
+  .meta .t{font-weight:600; color:var(--text, #fff); font-size:14px; line-height:1.3;
+           overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical}
+  .meta .d{margin-top:3px; font-size:12px; color:var(--muted, #9a8fb8);
+           overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  #credit{
+    position:fixed; left:18px; bottom:14px; z-index:2;
+    font-size:12px; color:var(--muted, #9a8fb8); opacity:.7; pointer-events:none; user-select:none;
+  }
+  #home:has(#tab-htmls:not(.active)) #credit{display:none}
+  .note{color:var(--muted, #9a8fb8); font-size:13px; padding:6px 2px; grid-column:1/-1; text-align:center}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    font:inherit; font-size:13px; color:var(--text, #ddd);
+    background:color-mix(in srgb, var(--bg3, #211936) 85%, transparent);
+    border:1px solid var(--glass-line); border-radius:11px;
+    padding:8px 15px; cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .btn:hover{border-color:color-mix(in srgb, var(--accent, #a77bff) 70%, transparent); background:var(--soft)}
+  .btn:disabled{opacity:.5; cursor:default}
+  .btn.danger{color:#ff7b8b}
+  .btn.danger:hover{border-color:#ff7b8b; background:rgba(255,123,139,.12)}
+
+  /* ---------- settings ---------- */
+  #tab-settings{padding:56px 24px 80px}
+  .settings-wrap{max-width:680px; margin:0 auto; display:flex; flex-direction:column; gap:16px}
+  .settings-title{margin:0 0 8px; font-size:30px; font-weight:700; letter-spacing:-.01em}
+  .settings-wrap section{
+    background:var(--glass); border:1px solid var(--glass-line); border-radius:18px;
+    padding:20px 22px;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .settings-wrap section h2{font-size:15px; color:var(--text, #fff); margin:0 0 12px; font-weight:600}
+  .settings-wrap section p.sub{margin:-6px 0 14px; font-size:12px; color:var(--muted, #9a8fb8)}
+  .settings-wrap section p.sub.after{margin:10px 0 0}
+  .settings-wrap section p.sub.after:empty{display:none}
+
+  #theme-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:10px}
+  .theme-swatch{
+    position:relative; border-radius:14px; padding:12px 12px 11px; cursor:pointer;
+    border:1px solid; font-size:13px; font-weight:600; transition:transform .15s;
+  }
+  .theme-swatch:hover{transform:translateY(-2px)}
+  .theme-swatch.selected{outline:2px solid var(--accent, #a77bff); outline-offset:2px}
+  .theme-swatch .dot{width:14px; height:14px; border-radius:50%; margin-bottom:8px}
+  .theme-swatch .theme-del{
+    position:absolute; top:6px; right:6px; width:20px; height:20px; line-height:18px;
+    border-radius:50%; border:0; background:rgba(0,0,0,.35); color:#fff; cursor:pointer;
+    font-size:12px; padding:0;
+  }
+  .theme-swatch .theme-del:hover{background:rgba(0,0,0,.6)}
+
+  #theme-maker{display:flex; flex-direction:column; gap:14px}
+  #tm-name{max-width:260px}
+  .swatch-row{display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:12px}
+  .swatch-row label{display:flex; flex-direction:column; gap:5px; font-size:11px; color:var(--muted, #9a8fb8)}
+  .swatch-row input[type=color]{
+    width:100%; height:34px; border:1px solid var(--glass-line); border-radius:10px;
+    padding:3px; background:var(--bg3, #211936); cursor:pointer;
+  }
+  .theme-preview{border:1px solid var(--glass-line); border-radius:14px; overflow:hidden; width:240px}
+  .tm-bar{height:26px}
+  .tm-card{display:flex; gap:9px; padding:11px}
+  .tm-card-thumb{width:34px; height:34px; border-radius:9px; flex:none}
+  .tm-card-title{font-size:12px; font-weight:700}
+  .tm-card-sub{font-size:11px; margin-top:2px}
+  .settings-actions{display:flex; gap:10px; flex-wrap:wrap}
+
+  .field, #tm-name{
+    font:inherit; font-size:13px; color:var(--text, #fff);
+    background:color-mix(in srgb, var(--bg3, #211936) 85%, transparent);
+    border:1px solid var(--glass-line); border-radius:11px;
+    padding:9px 12px; outline:none; min-width:0;
+  }
+  .field:focus, #tm-name:focus{border-color:var(--accent, #a77bff); box-shadow:0 0 0 3px var(--soft)}
+  .field::placeholder, #tm-name::placeholder{color:var(--muted, #9a8fb8)}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .row + .row, .row + .switch, .switch + .row{margin-top:10px}
+  .row .field{flex:1 1 200px}
+  .row select.field{flex:0 1 200px}
+  .row .lbl{font-size:13px; color:var(--text, #ddd); min-width:96px}
+  .switch{display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13px; color:var(--text, #ddd); width:fit-content}
+  .switch input{
+    appearance:none; -webkit-appearance:none; flex:none; margin:0; cursor:pointer;
+    width:38px; height:22px; border-radius:22px; position:relative;
+    background:var(--glass-line); transition:background .15s;
+  }
+  .switch input::after{
+    content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%;
+    background:var(--muted, #9a8fb8); transition:transform .15s, background .15s;
+  }
+  .switch input:checked{background:var(--accent, #a77bff)}
+  .switch input:checked::after{transform:translateX(16px); background:#fff}
+  .switch input:focus-visible{outline:2px solid var(--accent, #a77bff); outline-offset:2px}
+
+  /* ---------- custom tabs (Movies, Music, ...) ---------- */
+  .custom-panel{height:100dvh; padding:14px 0 14px 14px; flex-direction:column}
+  .tabpanel.custom-panel.active{display:flex}
+  .custom-toolbar{display:flex; align-items:center; gap:10px; padding:0 0 10px; flex-wrap:wrap}
+  .custom-status{color:var(--muted, #9a8fb8); font-size:12px}
+  .custom-frame{
+    flex:1; min-height:0; width:100%; display:block; background:#fff;
+    border:1px solid var(--glass-line); border-radius:16px;
+  }
+
+  /* ---------- game view (game in a frame, sidebar stays) ---------- */
+  #viewer{display:none; height:100dvh; padding:26px 0 22px 32px; flex-direction:column; gap:16px}
+  #viewer.on{display:flex}
+  #home.playing .tabpanel, #home.playing #credit{display:none}
+  .play-head{display:flex; align-items:baseline; gap:14px; min-width:0}
+  .play-title{
+    margin:0; flex:none; font-size:clamp(26px, 3.4vw, 42px); font-weight:700;
+    letter-spacing:-.02em; line-height:1.1; color:var(--text, #fff);
+  }
+  .play-title b{
+    font-weight:700;
+    background:linear-gradient(115deg, var(--text, #fff) 10%, var(--accent, #a77bff) 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  #play-name{font-size:15px; color:var(--muted, #9a8fb8); min-width:0;
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  #play-name::before{content:'/'; margin-right:12px; opacity:.5}
+  #stage{
+    position:relative; flex:1; min-height:0; overflow:hidden;
+    border-radius:16px; border:1px solid var(--glass-line);
+    background:var(--bg2, #191327);
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+  }
+  #stage:fullscreen{border-radius:0; border:0}
+  #frame{position:absolute; left:0; top:0; width:100%; height:100%; border:0; display:block; background:transparent}
+  #ctl{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  #ctl .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 16px; font-size:13px}
+  #ctl .btn svg{width:16px; height:16px; flex:none}
+  #ctl .spacer{flex:1}
+  #ctl #close{color:#ff8a9a}
+  #ctl #close:hover{border-color:#ff8a9a; background:rgba(255,138,154,.12)}
+  /* legacy mode: game covers the whole window, small floating controls top-right */
+  #viewer.legacy{position:fixed; inset:0; z-index:10; height:auto; padding:0; gap:0; background:#fff}
+  #viewer.legacy .play-head, #viewer.legacy #reload, #viewer.legacy .spacer{display:none}
+  #viewer.legacy #stage{border:0; border-radius:0; box-shadow:none; background:#fff}
+  #viewer.legacy #ctl{
+    position:absolute; top:12px; right:12px; z-index:3; gap:2px; padding:5px; flex-wrap:nowrap;
+    background:color-mix(in srgb, var(--bg2, #191327) 65%, transparent);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid var(--glass-line); border-radius:14px;
+    opacity:.6; transition:opacity .15s;
+  }
+  #viewer.legacy #ctl:hover{opacity:1}
+  #viewer.legacy #ctl .btn{background:transparent; border:0; padding:6px 11px}
+  #viewer.legacy #ctl .btn:hover{background:var(--soft)}
+  #viewer.legacy #ctl #close:hover{background:rgba(255,138,154,.14)}
+  #busy{
+    position:absolute; inset:0; z-index:2; display:none;
+    background:var(--bg2, #191327); color:var(--muted, #9a8fb8);
+    align-items:center; justify-content:center; text-align:center; padding:20px; font-size:14px;
+  }
+  #busy.on{display:flex}
+
+  /* ---------- phones: sidebar becomes a bottom dock ---------- */
+  @media (max-width:620px){
+    #home{padding-right:0; padding-bottom:84px}
+    #bar{
+      top:auto; bottom:12px; right:50%; transform:translateX(50%);
+      flex-direction:row; padding:6px 8px; max-width:calc(100vw - 24px);
+    }
+    #tabs{flex-direction:row; overflow-x:auto; scrollbar-width:none; gap:2px}
+    .bar-sep{width:1px; height:22px; margin:0 2px}
+    .tab{width:42px; height:42px}
+    .tab::after{display:none}
+    .hero{padding-top:10vh}
+    #search{font-size:15px; padding:14px 16px; margin-top:28px}
+    .games{padding:0 12px 30px}
+    #grid{--card-min:140px; gap:10px}
+    #grid[data-size="compact"]{--card-min:100px; gap:8px}
+    #grid[data-size="large"]{--card-min:170px; gap:12px}
+    #grid[data-size="xl"]{--card-min:260px; gap:14px}
+    .thumb{font-size:30px}
+    .custom-panel{height:calc(100dvh - 84px); padding:10px}
+    #viewer:not(.legacy){height:calc(100dvh - 84px); padding:14px 12px 10px; gap:10px}
+    #play-name{font-size:13px}
+    #ctl .btn{padding:9px 12px}
+    #tab-settings{padding:32px 14px 40px}
+    #credit{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="home">
+  <nav id="bar" aria-label="Main">
+    <div id="tabs">
+      <button class="tab active" data-tab="htmls" data-label="Games" aria-label="Games" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 11h4M8 9v4"/><path d="M15 12h.01M18 10h.01"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6l-.9 7.2a2.5 2.5 0 0 0 4.6 1.7L7.5 16h9l1.1 1.5a2.5 2.5 0 0 0 4.6-1.7l-.9-7.2a4 4 0 0 0-4-3.6z"/></svg></button>
+    </div>
+    <div class="bar-sep"></div>
+    <button id="settings-btn" class="tab cog" data-tab="settings" data-label="Settings" aria-label="Settings" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  </nav>
+
+  <div id="tab-htmls" class="tabpanel active">
+    <header class="hero">
+      <h1>Welcome to The <b>Universe</b></h1>
+      <input id="search" type="search" placeholder="Search games..." autocomplete="off" spellcheck="false">
+      <div id="hero-msg" class="hero-sub">pick a game and get lost&hellip;</div>
+    </header>
+    <section class="games">
+      <div class="grid-head"><h2 id="grid-title">All games</h2><span id="grid-count" class="count"></span></div>
+      <div id="grid"></div>
+    </section>
+  </div>
+
+  <div id="tab-settings" class="tabpanel">
+    <div class="settings-wrap">
+      <h1 class="settings-title">Settings</h1>
+      <section>
+        <h2>Theme</h2>
+        <div id="theme-grid"></div>
+      </section>
+
+      <section>
+        <h2>Make a theme</h2>
+        <p class="sub">Pick colors and save it - it shows up in the theme list above.</p>
+        <div id="theme-maker">
+          <input id="tm-name" type="text" placeholder="Theme name">
+          <div class="swatch-row">
+            <label>Background <input id="tm-bg" type="color" value="#120e1c"></label>
+            <label>Bar / panels <input id="tm-bg2" type="color" value="#191327"></label>
+            <label>Cards <input id="tm-bg3" type="color" value="#211936"></label>
+            <label>Border <input id="tm-border" type="color" value="#30264a"></label>
+            <label>Text <input id="tm-text" type="color" value="#f1ecff"></label>
+            <label>Muted text <input id="tm-muted" type="color" value="#9a8fb8"></label>
+            <label>Accent <input id="tm-accent" type="color" value="#a77bff"></label>
+          </div>
+          <div id="tm-preview" class="theme-preview">
+            <div class="tm-bar"></div>
+            <div class="tm-card">
+              <div class="tm-card-thumb"></div>
+              <div>
+                <div class="tm-card-title">Sample card</div>
+                <div class="tm-card-sub">this is what it'll look like</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <button id="tm-save" class="btn" type="button">Save theme</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Background image</h2>
+        <p class="sub">Shown behind the game grid. Paste an image link or upload a picture.</p>
+        <div class="row">
+          <input id="bg-url" class="field" type="url" placeholder="https://example.com/wallpaper.jpg" autocomplete="off" spellcheck="false">
+          <button id="bg-upload" class="btn" type="button">Upload…</button>
+          <button id="bg-clear" class="btn" type="button">Remove</button>
+          <input id="bg-file" type="file" accept="image/*" hidden>
+        </div>
+        <p id="bg-note" class="sub after" role="status"></p>
+      </section>
+
+      <section>
+        <h2>Tab cloak</h2>
+        <p class="sub">Change this tab's name and icon. Pick a preset or type your own.</p>
+        <div class="row" id="cloak-presets">
+          <button class="btn" type="button" data-title="" data-emoji="">Off</button>
+          <button class="btn" type="button" data-title="Untitled document" data-emoji="📄">Document</button>
+          <button class="btn" type="button" data-title="Classes" data-emoji="">Classes</button>
+          <button class="btn" type="button" data-title="Calculator" data-emoji="">Calculator</button>
+          <button class="btn" type="button" data-title="Notes" data-emoji="📝">Notes</button>
+        </div>
+        <div class="row">
+          <input id="cloak-title" class="field" type="text" placeholder="Tab name" autocomplete="off" spellcheck="false">
+          <input id="cloak-icon" class="field" type="url" placeholder="Icon link (optional)" autocomplete="off" spellcheck="false">
+        </div>
+      </section>
+
+      <section>
+        <h2>Panic key</h2>
+        <p class="sub">Press this key anywhere - even inside a game - to jump straight to another site.</p>
+        <div class="row">
+          <button id="panic-set" class="btn" type="button">Set key</button>
+          <button id="panic-clear" class="btn" type="button">Clear</button>
+          <input id="panic-url" class="field" type="url" placeholder="https://www.google.com" autocomplete="off" spellcheck="false">
+        </div>
+      </section>
+
+      <section>
+        <h2>Games</h2>
+        <div class="row">
+          <label class="lbl" for="sort">Sort order</label>
+          <select id="sort" class="field">
+            <option value="catalog">Catalog order</option>
+            <option value="az">A to Z</option>
+            <option value="za">Z to A</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="lbl" for="grid-size">Grid size</label>
+          <select id="grid-size" class="field">
+            <option value="compact">Compact</option>
+            <option value="normal">Normal</option>
+            <option value="large">Large</option>
+            <option value="xl">Extra large</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="lbl" for="open-mode">Open games</label>
+          <select id="open-mode" class="field">
+            <option value="framed">In a frame (new)</option>
+            <option value="legacy">Full page (legacy)</option>
+          </select>
+        </div>
+        <label class="switch"><input id="opt-fs" type="checkbox"> Start games in fullscreen</label>
+      </section>
+
+      <section>
+        <h2>Catalog</h2>
+        <p class="sub">Re-fetch the game lists (jsDelivr and your server).</p>
+        <div class="settings-actions">
+          <button id="refresh" class="btn" type="button">Refresh catalog</button>
+        </div>
+      </section>
+
+      <section>
+        <h2>Window</h2>
+        <div class="settings-actions">
+          <button id="blank" class="btn" type="button">Open in about:blank</button>
+        </div>
+        <label class="switch" style="margin-top:12px"><input id="opt-blank" type="checkbox"> Always open in about:blank</label>
+        <p class="sub after">When you load the page it reopens itself in an about:blank tab, and the original tab goes to your panic site. If the popup is blocked, it happens on your first click.</p>
+      </section>
+
+      <section>
+        <h2>Reset</h2>
+        <p class="sub">Clears saved themes and every setting on this page.</p>
+        <div class="settings-actions">
+          <button id="reset-all" class="btn danger" type="button">Reset everything</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div id="viewer" aria-label="Game">
+    <div class="play-head">
+      <h1 class="play-title">The <b>Universe</b></h1>
+      <span id="play-name"></span>
+    </div>
+    <div id="stage">
+      <iframe id="frame" title="Game"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock"></iframe>
+      <div id="busy">Loading…</div>
+    </div>
+    <div id="ctl">
+      <button id="fs" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg><span id="fs-label">Fullscreen</span></button>
+      <button id="reload" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg><span>Reload</span></button>
+      <span class="spacer"></span>
+      <button id="close" class="btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg><span>Close</span></button>
+    </div>
+  </div>
+
+  <div id="credit">made by tasdiam</div>
+</div>
+
+<script>
+/* ======================================================================
+   Your list lives in a JSON file:  { "Name": "html link", ... }
+   An entry can also be an object for a custom tile:
+     "Name": { "url": "...", "image": "...", "desc": "subtitle text" }
+   ====================================================================== */
+const LIST_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tas6.json";
+
+/* ======================================================================
+   Your own server (server.js). Its /games.json is loaded too and merged
+   with the list above. Links and images in it can be relative, e.g.
+     "My Game": { "url": "games/my-game.html", "image": "images/my-game.png" }
+   If a game has the same name in both lists, the server's version wins.
+   Leave it as "" to only use jsDelivr.
+     Example:  const SERVER_URL = "https://my-universe-server.onrender.com";
+   ====================================================================== */
+const SERVER_URL = "";
+const SERVER_LIST_URL = SERVER_URL ? SERVER_URL.replace(/\/+$/, '') + '/games.json' : '';
+/* ===================================================================== */
+
+/* ======================================================================
+   Rotating messages under the search bar come from a plain text file.
+   One message per line (blank lines are skipped). Inside a line you can use
+     \n  for a line break     \t  for a tab     \\  for a real backslash
+   MESSAGE_SECONDS is how long each message stays up.
+   ====================================================================== */
+const MESSAGES_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/messages.txt";
+const MESSAGE_SECONDS = 6;
+/* ===================================================================== */
+
+/* ======================================================================
+   ADD YOUR OWN TABS HERE — one entry per HTML file link.
+   Copy the example line, remove the //, and change the name and URL.
+   Use a direct HTML file URL (not a GitHub file preview page).
+   Tabs appear beside Games and open inside this page.
+   The HTML is downloaded when its tab is first opened; Reload fetches it again.
+   Example:
+     { name: "Tools", url: "https://example.com/tools.html" },
+   ====================================================================== */
+const CUSTOM_TABS = [
+     { name: "Movies", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/moves/move.html" },
+     { name: "Music", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/music/music-player.html" },
+     { name: "Chat", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/chat.html" },
+     { name: "AI", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/claude.html" },
+     { name: "Tas Proxy", url: "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/tabs/tas.html" }
+  // { name: "Tools", url: "https://example.com/tools.html" },
+  // { name: "More Games", url: "https://example.com/games.html" },
+];
+/* ===================================================================== */
+
+/* ======================================================================
+   Remote kill switch:  { "isValid": true }  (or false)
+   Fetched fresh (no-store, not the jsDelivr CDN) so flipping it takes
+   effect immediately instead of waiting out any cache window. Only an
+   explicit `false` blocks the page - a network hiccup, missing field, or
+   malformed JSON all fail OPEN so a GitHub outage doesn't brick this for
+   everyone.
+   ====================================================================== */
+const STATUS_URL = "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/status_new.json";
+/* ===================================================================== */
+
+const $ = id => document.getElementById(id);
+const grid = $('grid'), home = $('home'), viewer = $('viewer'),
+      frame = $('frame'), busy = $('busy'), bar = $('bar');
+
+let entries = {};          // name -> {url, image, desc}
+let current = null;        // {name, html}
+
+/* ---------- settings (saved in this browser) ---------- */
+const DEFAULT_TITLE = 'The Universe';
+const DEFAULT_SETTINGS = {
+  cloakTitle:'', cloakIcon:'',
+  panicKey:'', panicUrl:'https://www.google.com',
+  autoBlank:false, sort:'catalog', bgImage:'', autoFullscreen:false, openMode:'framed', gridSize:'normal',
+};
+function loadSettings(){
+  try { return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(localStorage.getItem('universe-settings') || '{}')); }
+  catch { return Object.assign({}, DEFAULT_SETTINGS); }
+}
+function saveSettings(){
+  try { localStorage.setItem('universe-settings', JSON.stringify(settings)); return true; }
+  catch { return false; }
+}
+let settings = loadSettings();
+
+// Returns a clean http(s) link, or '' if it isn't one.
+function safeUrl(str){
+  str = String(str || '').trim();
+  if(!str) return '';
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(str)) str = 'https://' + str;
+  try{
+    const u = new URL(str);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
+  }catch{ return ''; }
+}
+const emojiIcon = e => 'data:image/svg+xml,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">' + e + '</text></svg>');
+
+/* tab cloak */
+function applyCloak(){
+  const title = settings.cloakTitle || DEFAULT_TITLE;
+  document.title = title;
+
+  // Keep the HTML page's own favicon in sync.
+  let link = document.querySelector('link[rel="icon"]');
+  if(settings.cloakIcon || link){
+    if(!link){ link = document.createElement('link'); link.rel = 'icon'; document.head.append(link); }
+    link.href = settings.cloakIcon || 'data:,';
+  }
+
+  // When this HTML is loaded by the unchanged SVG launcher, the browser tab
+  // belongs to the outer SVG document, not this iframe. Update its SVG title
+  // and make a best-effort attempt to expose the same favicon to the browser.
+  try{
+    const parentDoc = window.parent !== window ? window.parent.document : null;
+    const svgRoot = parentDoc && parentDoc.documentElement && parentDoc.documentElement.namespaceURI === 'http://www.w3.org/2000/svg'
+      ? parentDoc.documentElement : null;
+    if(svgRoot){
+      let svgTitle = null;
+      for(const child of svgRoot.children){
+        if(child.localName === 'title'){ svgTitle = child; break; }
+      }
+      if(!svgTitle){
+        svgTitle = parentDoc.createElementNS('http://www.w3.org/2000/svg', 'title');
+        svgRoot.insertBefore(svgTitle, svgRoot.firstChild);
+      }
+      svgTitle.textContent = title;
+
+      // Favicon links in standalone SVG documents are browser-dependent.
+      // Add/update an XHTML link without changing the SVG launcher itself.
+      if(settings.cloakIcon){
+        let parentIcon = parentDoc.querySelector('link[rel="icon"]');
+        if(!parentIcon){
+          parentIcon = parentDoc.createElementNS('http://www.w3.org/1999/xhtml', 'link');
+          parentIcon.setAttribute('rel', 'icon');
+          svgRoot.appendChild(parentIcon);
+        }
+        parentIcon.setAttribute('href', settings.cloakIcon);
+      }
+    }
+  }catch(e){ /* Parent document may be inaccessible in some browser contexts. */ }
+}
+$('cloak-title').addEventListener('input', e => {
+  settings.cloakTitle = e.target.value.trim(); saveSettings(); applyCloak();
+});
+$('cloak-icon').addEventListener('change', e => {
+  settings.cloakIcon = safeUrl(e.target.value); saveSettings(); applySettings();
+});
+$('cloak-presets').querySelectorAll('button').forEach(b => b.onclick = () => {
+  settings.cloakTitle = b.dataset.title;
+  settings.cloakIcon = b.dataset.emoji ? emojiIcon(b.dataset.emoji) : '';
+  saveSettings(); applySettings();
+});
+
+/* background image */
+function applyBackground(){
+  const u = settings.bgImage;
+  const esc = u.replace(/[\\"\n\r]/g, c => '\\' + c.charCodeAt(0).toString(16) + ' ');
+  document.body.style.backgroundImage =
+    u ? 'linear-gradient(var(--bg-dim), var(--bg-dim)), url("' + esc + '")' : '';
+}
+function fileToDataURL(file, max, quality){
+  return new Promise((resolve, reject) => {
+    const img = new Image(), src = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k));
+      c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(src);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(src); reject(new Error('not an image')); };
+    img.src = src;
+  });
+}
+$('bg-url').addEventListener('change', e => {
+  settings.bgImage = safeUrl(e.target.value); saveSettings(); applySettings();
+});
+$('bg-upload').onclick = () => $('bg-file').click();
+$('bg-clear').onclick = () => { settings.bgImage = ''; saveSettings(); applySettings(); };
+$('bg-file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if(!file) return;
+  try{
+    // shrink the picture so it fits in the browser's storage
+    let saved = false;
+    for(const [max, q] of [[1920, .85], [1280, .75], [960, .65]]){
+      settings.bgImage = await fileToDataURL(file, max, q);
+      if((saved = saveSettings())) break;
+    }
+    applySettings();
+    if(!saved) $('bg-note').textContent = 'That picture is too big to save - it will be gone after a reload.';
+  }catch{
+    $('bg-note').textContent = 'Could not read that file as a picture.';
+  }
+});
+
+/* panic key */
+let recordingPanic = false;
+function keyName(k){ return k === ' ' ? 'Space' : k.length === 1 ? k.toUpperCase() : k; }
+function renderPanic(){
+  $('panic-set').textContent = recordingPanic ? 'Press a key… (Esc to cancel)'
+    : settings.panicKey ? 'Key: ' + keyName(settings.panicKey) : 'Set key';
+}
+function panicCheck(e){
+  if(recordingPanic || !settings.panicKey) return false;
+  const t = e.target, tag = t && t.tagName;
+  if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return false;
+  if(e.ctrlKey || e.metaKey || e.altKey) return false;
+  if(String(e.key).toLowerCase() !== settings.panicKey.toLowerCase()) return false;
+  e.preventDefault();
+  location.replace(safeUrl(settings.panicUrl) || DEFAULT_SETTINGS.panicUrl);
+  return true;
+}
+// Keys pressed inside a game go to the game's own frame, so listen there too.
+function watchFrame(f){
+  f.addEventListener('load', () => {
+    try { f.contentWindow.addEventListener('keydown', panicCheck, true); } catch {}
+  });
+}
+watchFrame(frame);
+$('panic-set').onclick = () => { recordingPanic = !recordingPanic; renderPanic(); };
+$('panic-clear').onclick = () => { recordingPanic = false; settings.panicKey = ''; saveSettings(); renderPanic(); };
+$('panic-url').addEventListener('change', e => {
+  settings.panicUrl = safeUrl(e.target.value) || DEFAULT_SETTINGS.panicUrl; saveSettings(); applySettings();
+});
+addEventListener('keydown', e => {
+  if(!recordingPanic) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  if(['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+  recordingPanic = false;
+  if(e.key !== 'Escape'){ settings.panicKey = e.key; saveSettings(); }
+  renderPanic();
+}, true);
+
+/* games + window toggles */
+$('sort').addEventListener('change', e => { settings.sort = e.target.value; saveSettings(); buildGrid(); });
+$('grid-size').addEventListener('change', e => { settings.gridSize = e.target.value; saveSettings(); applySettings(); });
+$('open-mode').addEventListener('change', e => { settings.openMode = e.target.value; saveSettings(); applySettings(); });
+$('opt-fs').addEventListener('change', e => { settings.autoFullscreen = e.target.checked; saveSettings(); });
+$('opt-blank').addEventListener('change', e => { settings.autoBlank = e.target.checked; saveSettings(); });
+
+// Push the current settings into the page and into the settings form.
+function applySettings(){
+  applyCloak();
+  applyBackground();
+  const uploaded = settings.bgImage.startsWith('data:');
+  $('bg-url').value = uploaded ? '' : settings.bgImage;
+  $('bg-note').textContent = uploaded ? 'Using your uploaded picture.' : '';
+  $('cloak-title').value = settings.cloakTitle;
+  const presetIcon = settings.cloakIcon.startsWith('data:');
+  $('cloak-icon').value = presetIcon ? '' : settings.cloakIcon;
+  $('cloak-icon').placeholder = presetIcon ? 'Using preset icon' : 'Icon link (optional)';
+  $('panic-url').value = settings.panicUrl;
+  $('sort').value = settings.sort;
+  $('opt-fs').checked = !!settings.autoFullscreen;
+  $('open-mode').value = settings.openMode === 'legacy' ? 'legacy' : 'framed';
+  const size = ['compact', 'normal', 'large', 'xl'].includes(settings.gridSize) ? settings.gridSize : 'normal';
+  $('grid-size').value = size;
+  grid.dataset.size = size;
+  $('viewer').classList.toggle('legacy', settings.openMode === 'legacy');
+  $('opt-blank').checked = !!settings.autoBlank;
+  renderPanic();
+}
+applySettings();
+
+/* ---------- themes ---------- */
+const PRESET_THEMES = [
+  { name:'Purple',    bg:'#120e1c', bg2:'#191327', bg3:'#211936', border:'#30264a', text:'#f1ecff', muted:'#9a8fb8', accent:'#a77bff' },
+  { name:'Midnight',  bg:'#0b1020', bg2:'#111833', bg3:'#162042', border:'#25305a', text:'#e8edff', muted:'#8a96bf', accent:'#6c8cff' },
+  { name:'Dark',      bg:'#111214', bg2:'#141619', bg3:'#1b1d21', border:'#2c3036', text:'#eeeeee', muted:'#7d838c', accent:'#8b909a' },
+  { name:'Light',         bg:'#f5f5f7', bg2:'#ffffff', bg3:'#ffffff', border:'#e0e0e5', text:'#1a1a1e', muted:'#6b6b75', accent:'#3366ff' }
+];
+const VARS = ['bg','bg2','bg3','border','text','muted','accent'];
+
+function loadCustomThemes(){
+  try { return JSON.parse(localStorage.getItem('universe-custom-themes') || '[]'); }
+  catch { return []; }
+}
+function saveCustomThemes(list){
+  localStorage.setItem('universe-custom-themes', JSON.stringify(list));
+}
+function loadActiveTheme(){
+  try { return JSON.parse(localStorage.getItem('universe-active-theme') || 'null'); }
+  catch { return null; }
+}
+
+function applyTheme(t){
+  VARS.forEach(k => document.documentElement.style.setProperty('--' + k, t[k]));
+  // tell the browser whether this is a light or dark theme so native bits
+  // (scrollbars, the search clear button, color pickers) match too
+  const n = parseInt(String(t.bg).slice(1), 16) || 0;
+  const lum = (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
+  document.documentElement.style.colorScheme = lum > 0.5 ? 'light' : 'dark';
+  localStorage.setItem('universe-active-theme', JSON.stringify(t));
+  renderThemeGrid();
+}
+
+function renderThemeGrid(){
+  const themeGrid = $('theme-grid');
+  if(!themeGrid) return;
+  const active = loadActiveTheme();
+  themeGrid.innerHTML = '';
+  [...PRESET_THEMES, ...loadCustomThemes()].forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'theme-swatch' + (active && active.name === t.name ? ' selected' : '');
+    el.style.background = t.bg3;
+    el.style.borderColor = t.border;
+    el.style.color = t.text;
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.style.background = t.accent;
+    const label = document.createElement('div');
+    label.textContent = t.name;
+    el.append(dot, label);
+    el.onclick = () => applyTheme(t);
+    if(t.custom){
+      const del = document.createElement('button');
+      del.className = 'theme-del';
+      del.type = 'button';
+      del.textContent = '×';
+      del.title = 'Delete theme';
+      del.onclick = e => {
+        e.stopPropagation();
+        const list = loadCustomThemes().filter(x => x.name !== t.name);
+        saveCustomThemes(list);
+        if(active && active.name === t.name) applyTheme(PRESET_THEMES[0]);
+        else renderThemeGrid();
+      };
+      el.append(del);
+    }
+    themeGrid.append(el);
+  });
+}
+
+/* theme maker */
+const tmInputs = {
+  bg: $('tm-bg'), bg2: $('tm-bg2'), bg3: $('tm-bg3'),
+  border: $('tm-border'), text: $('tm-text'), muted: $('tm-muted'), accent: $('tm-accent'),
+};
+function updateMakerPreview(){
+  const preview = $('tm-preview');
+  preview.style.background = tmInputs.bg.value;
+  preview.querySelector('.tm-bar').style.background = tmInputs.bg2.value;
+  const card = preview.querySelector('.tm-card');
+  card.style.background = tmInputs.bg3.value;
+  card.style.borderTop = '1px solid ' + tmInputs.border.value;
+  preview.querySelector('.tm-card-thumb').style.background = tmInputs.accent.value;
+  preview.querySelector('.tm-card-title').style.color = tmInputs.text.value;
+  preview.querySelector('.tm-card-sub').style.color = tmInputs.muted.value;
+}
+Object.values(tmInputs).forEach(inp => inp.addEventListener('input', updateMakerPreview));
+updateMakerPreview();
+
+let makerInitialized = false;
+function populateMakerFromActiveTheme(){
+  if(makerInitialized) return;
+  makerInitialized = true;
+  const t = loadActiveTheme() || PRESET_THEMES[0];
+  VARS.forEach(k => { if(tmInputs[k]) tmInputs[k].value = t[k]; });
+  updateMakerPreview();
+}
+
+$('tm-save').onclick = () => {
+  const name = ($('tm-name').value || '').trim() || ('Custom ' + (loadCustomThemes().length + 1));
+  const t = { name, custom: true };
+  VARS.forEach(k => t[k] = tmInputs[k].value);
+  const list = loadCustomThemes().filter(x => x.name !== name);
+  list.push(t);
+  saveCustomThemes(list);
+  applyTheme(t);
+  $('tm-name').value = '';
+};
+
+/* apply saved (or default) theme immediately */
+applyTheme(loadActiveTheme() || PRESET_THEMES[0]);
+
+/* ---------- tabs ---------- */
+let lastTab = 'htmls';
+function setTab(name){
+  if(viewer.classList.contains('on')) closeViewer();   // picking any tab leaves the game
+  if(name !== 'settings') lastTab = name;
+  document.querySelectorAll('.tab').forEach(b => {
+    const active = b.dataset.tab === name;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-selected', String(active));
+  });
+  document.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  bar.classList.toggle('settings-active', name === 'settings');
+  bar.classList.toggle('custom-active', name.startsWith('custom-'));
+  if(name === 'settings'){
+    renderThemeGrid();
+    populateMakerFromActiveTheme();
+  }
+  const custom = customTabStates.get(name);
+  if(custom && !custom.loaded && !custom.loading) loadCustomTab(custom);
+}
+const customTabStates = new Map();
+const TAB_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const TAB_ICONS = [
+  [/movie|film|tv|show|watch/, '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 3v18M17 3v18M3 7.5h4M3 12h18M3 16.5h4M17 7.5h4M17 16.5h4"/>'],
+  [/music|song|radio|audio/, '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'],
+  [/chat|talk|message|discord/, '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
+  [/\bai\b|claude|gpt|bot|assistant/, '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>'],
+  [/proxy|web|browser|search|internet/, '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'],
+  [/game|play|arcade/, '<path d="M6 11h4M8 9v4"/><path d="M15 12h.01M18 10h.01"/><path d="M17.3 5H6.7a4 4 0 0 0-4 3.6l-.9 7.2a2.5 2.5 0 0 0 4.6 1.7L7.5 16h9l1.1 1.5a2.5 2.5 0 0 0 4.6-1.7l-.9-7.2a4 4 0 0 0-4-3.6z"/>'],
+  [/tool|util/, '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'],
+];
+// Fill a sidebar button with an icon that fits its name (or its first letter).
+function setTabIcon(btn, name){
+  const key = name.toLowerCase();
+  const hit = TAB_ICONS.find(([re]) => re.test(key));
+  if(hit){ btn.innerHTML = TAB_ICON_SVG + hit[1] + '</svg>'; return; }
+  const letter = document.createElement('span');
+  letter.className = 'tab-letter';
+  letter.textContent = name.trim().charAt(0).toUpperCase() || '?';
+  btn.replaceChildren(letter);
+}
+$('tabs').setAttribute('role', 'tablist');
+function bindTab(btn){
+  btn.setAttribute('role', 'tab');
+  btn.setAttribute('aria-controls', 'tab-' + btn.dataset.tab);
+  btn.setAttribute('aria-selected', String(btn.classList.contains('active')));
+  btn.onclick = () => setTab(btn.dataset.tab);
+}
+document.querySelectorAll('.tab').forEach(bindTab);
+$('settings-btn').onclick = () =>
+  setTab($('settings-btn').classList.contains('active') ? lastTab : 'settings');
+
+async function loadCustomTab(state){
+  state.loading = true;
+  state.reload.disabled = true;
+  state.status.textContent = 'Loading ' + state.name + '…';
+  try{
+    const url = new URL(state.url, document.baseURI);
+    if(!['http:', 'https:'].includes(url.protocol)) throw new Error('Use an HTTP or HTTPS HTML file link.');
+    let used = url.href, html = await grab(used);
+    if(!html.trim()){ used = bust(url.href); html = await grab(used); }
+    if(!html.trim() && toRaw(url.href)){ used = toRaw(url.href); html = await grab(used); }
+    if(!html.trim()) throw new Error('server returned an empty body');
+    state.html = withBase(html, used);
+    state.frame.srcdoc = state.html;
+    state.loaded = true;
+    state.status.textContent = '';
+  }catch(err){
+    state.status.textContent = 'Could not load tab: ' + err.message + '. The link must allow cross-origin downloads. Click Reload to retry.';
+  }finally{
+    state.loading = false;
+    state.reload.disabled = false;
+  }
+}
+function createCustomTabs(){
+  // Remove cloned runtime panels before rebuilding (also used by about:blank).
+  document.querySelectorAll('[data-custom-tab]').forEach(el => el.remove());
+  CUSTOM_TABS.forEach((config, index) => {
+    if(!config || typeof config.name !== 'string' || typeof config.url !== 'string') return;
+    const name = config.name.trim(), url = config.url.trim();
+    if(!name || !url) return;
+    const id = 'custom-' + index;
+    const button = document.createElement('button');
+    button.className = 'tab'; button.type = 'button'; setTabIcon(button, name);
+    button.dataset.label = name; button.setAttribute('aria-label', name);
+    button.dataset.tab = id; button.dataset.customTab = '';
+    bindTab(button); $('tabs').append(button);
+    const panel = document.createElement('div');
+    panel.id = 'tab-' + id; panel.className = 'tabpanel custom-panel';
+    panel.dataset.customTab = ''; panel.setAttribute('role', 'tabpanel');
+    const toolbar = document.createElement('div'); toolbar.className = 'custom-toolbar';
+    const reload = document.createElement('button');
+    reload.type = 'button'; reload.className = 'btn'; reload.textContent = 'Reload';
+    const status = document.createElement('span');
+    status.className = 'custom-status'; status.setAttribute('role', 'status');
+    const iframe = document.createElement('iframe');
+    iframe.className = 'custom-frame'; iframe.title = name;
+    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms allow-modals allow-popups allow-pointer-lock');
+    const state = {name, url, frame:iframe, status, reload, loaded:false, loading:false, html:''};
+    customTabStates.set(id, state);
+    watchFrame(iframe);
+    reload.onclick = () => loadCustomTab(state);
+    toolbar.append(reload, status); panel.append(toolbar, iframe);
+    $('tab-settings').after(panel);
+  });
+  const updateHeight = () => document.documentElement.style.setProperty('--bar-height', bar.offsetHeight + 'px');
+  if(typeof ResizeObserver !== 'undefined') new ResizeObserver(updateHeight).observe(bar);
+  updateHeight();
+}
+createCustomTabs();
+
+/* ---------- list ---------- */
+let listWarning = '';      // shown above the grid when one of the lists fails
+
+// Download one list and parse it, trying a cache-busted / raw GitHub copy if it comes back empty.
+async function fetchList(url){
+  let text = await grab(url);
+  if(!text.trim()) text = await grab(bust(url));
+  if(!text.trim() && toRaw(url)) text = await grab(toRaw(url));
+  if(!text.trim()) throw new Error('empty response');
+  const data = JSON.parse(text);
+  if(!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('the list is not a { "Name": ... } object');
+  return data;
+}
+
+// Add a list's games to `target`, turning relative links into full ones.
+function addEntries(target, data, listUrl){
+  const abs = u => { try { return new URL(String(u).trim(), listUrl).href; } catch { return ''; } };
+  for(const [name, v] of Object.entries(data)){
+    if(typeof v === 'string' && v.trim()){
+      const url = abs(v);
+      if(url) target[name] = {url};
+    } else if(v && typeof v === 'object' && v.url){
+      const url = abs(v.url);
+      if(!url) continue;
+      const e = Object.assign({}, v, {url});
+      if(v.image) e.image = abs(v.image);
+      target[name] = e;
+    }
+  }
+}
+
+async function loadList(){
+  grid.innerHTML = '';
+  const msg = document.createElement('div');
+  msg.className = 'note'; msg.textContent = 'Loading list…';
+  grid.append(msg);
+
+  const sources = [{label:'jsDelivr list', url:LIST_URL}, {label:'server list', url:SERVER_LIST_URL}]
+    .filter(src => src.url);
+  const results = await Promise.allSettled(sources.map(src => fetchList(src.url)));
+
+  const merged = {}, failed = [];
+  results.forEach((r, i) => {
+    if(r.status === 'fulfilled') addEntries(merged, r.value, sources[i].url);
+    else failed.push(sources[i].label + ' (' + (r.reason && r.reason.message || r.reason) + ')');
+  });
+
+  if(failed.length === sources.length){
+    grid.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'note';
+    box.textContent = 'Could not load list: ' + failed.join(', ');
+    const retry = document.createElement('button');
+    retry.className = 'btn';
+    retry.style.marginLeft = '8px';
+    retry.textContent = 'Retry';
+    retry.onclick = loadList;
+    box.append(retry);
+    grid.append(box);
+    return;
+  }
+  entries = merged;
+  listWarning = failed.length ? 'Could not load the ' + failed.join(', ') + ' - showing the rest.' : '';
+  buildGrid();
+}
+
+function buildGrid(){
+  const q = ($('search').value || '').trim().toLowerCase();
+  grid.innerHTML = '';
+  if(listWarning){
+    const w = document.createElement('div');
+    w.className = 'note'; w.textContent = listWarning;
+    grid.append(w);
+  }
+  const hits = Object.entries(entries).filter(([name, e]) =>
+    !q || name.toLowerCase().includes(q) || (e.desc || '').toLowerCase().includes(q));
+  if(settings.sort === 'az' || settings.sort === 'za'){
+    hits.sort((a, b) => a[0].localeCompare(b[0], undefined, {sensitivity:'base', numeric:true}));
+    if(settings.sort === 'za') hits.reverse();
+  }
+  hits.forEach(([name, e]) => grid.append(makeCard(name, e)));
+  const total = Object.keys(entries).length;
+  $('grid-title').textContent = q ? 'Results' : 'All games';
+  $('grid-count').textContent = !total ? '' : q ? hits.length + ' of ' + total : String(total);
+
+  if(!Object.keys(entries).length){
+    const n = document.createElement('div');
+    n.className = 'note'; n.textContent = 'The list is empty.';
+    grid.append(n);
+  } else if(!hits.length){
+    const n = document.createElement('div');
+    n.className = 'note'; n.textContent = 'Nothing matches "' + $('search').value + '".';
+    grid.append(n);
+  }
+}
+
+$('search').addEventListener('input', buildGrid);
+
+function makeCard(name, e){
+  const c = document.createElement('div');
+  c.className = 'card'; c.tabIndex = 0;
+
+  const th = document.createElement('div');
+  th.className = 'thumb';
+  if(e.image){
+    const img = new Image();
+    img.src = e.image; img.alt = '';
+    img.onerror = () => { th.innerHTML = ''; paintInitial(th, name); };
+    th.append(img);
+  } else paintInitial(th, name);
+
+  const m = document.createElement('div');
+  m.className = 'meta';
+  const t = document.createElement('div');
+  t.className = 't'; t.textContent = name;
+  m.append(t);
+  if(e.desc){
+    const d = document.createElement('div');
+    d.className = 'd'; d.textContent = e.desc;
+    m.append(d);
+  }
+
+  c.append(th, m);
+  const go = () => openUrl(e.url, name);
+  c.onclick = go;
+  c.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); go(); } };
+  return c;
+}
+
+function paintInitial(el, name){
+  // a calm tile in the blue-purple-pink range, with up to two initials
+  let h = 0;
+  for(const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997;
+  el.classList.add('initial');
+  el.style.setProperty('--h', 215 + h % 90);
+  const words = name.replace(/[^\p{L}\p{N}\s]/gu, ' ').trim().split(/\s+/).filter(Boolean);
+  el.textContent = ((words[0] || '?').charAt(0) + (words[1] ? words[1].charAt(0) : '')).toUpperCase();
+}
+
+/* ---------- fetching ---------- */
+const bust = u => u + (u.includes('?') ? '&' : '?') + 'cb=' + Date.now();
+
+async function grab(url){
+  const res = await fetch(url, {cache:'no-store', headers:{'Accept':'text/html,text/plain,*/*'}});
+  if(!res.ok) throw new Error(res.status + ' ' + res.statusText);
+  return res.text();
+}
+
+function toRaw(url){
+  const m = url.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^/]+)\/([^/@]+)@([^/]+)\/(.+)$/);
+  return m ? 'https://raw.githubusercontent.com/' + m[1] + '/' + m[2] + '/' + m[3] + '/' + m[4] : null;
+}
+
+function withBase(text, url){
+  if(/<base\s/i.test(text)) return text;
+  const baseURL = new URL('.', url).href.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  const tag = '<base href="' + baseURL + '">';
+  if(/<head[^>]*>/i.test(text)) return text.replace(/<head[^>]*>/i, m => m + tag);
+  if(/<html[^>]*>/i.test(text)) return text.replace(/<html[^>]*>/i, m => m + '<head>' + tag + '</head>');
+  return tag + text;
+}
+
+/* ---------- opening ---------- */
+const stage = $('stage');
+// Games size themselves to the window in whole pixels. If the frame is a fraction of a
+// pixel bigger (happens at some zoom levels), a thin strip of white shows along the edge,
+// so the frame is always rounded down to whole pixels.
+function fitFrame(){
+  const r = stage.getBoundingClientRect(), cs = getComputedStyle(stage);
+  const w = r.width - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth);
+  const h = r.height - parseFloat(cs.borderTopWidth) - parseFloat(cs.borderBottomWidth);
+  frame.style.width = Math.max(0, Math.floor(w + 0.01)) + 'px';
+  frame.style.height = Math.max(0, Math.floor(h + 0.01)) + 'px';
+}
+if(typeof ResizeObserver !== 'undefined') new ResizeObserver(fitFrame).observe(stage);
+let openToken = 0;          // bumps on every open/close so a slow download can't pop up late
+let lastOpen = null;        // {url, name} - what Reload loads again
+let homeScroll = 0;         // where the game grid was scrolled to
+
+async function openUrl(url, name){
+  const token = ++openToken;
+  lastOpen = {url, name};
+  show(name); busy.classList.add('on'); busy.textContent = 'Loading ' + name + '…';
+  // must be asked for right away, while the click still counts as a user action
+  if(settings.autoFullscreen && !document.fullscreenElement && stage.requestFullscreen)
+    stage.requestFullscreen().catch(() => {});
+  try{
+    let used = url, text = await grab(url);
+    if(!text.trim()){ used = bust(url); text = await grab(used); }
+    if(!text.trim() && toRaw(url)){ used = toRaw(url); text = await grab(used); }
+    if(!text.trim()) throw new Error('server returned an empty body');
+    if(token !== openToken) return;
+    render(withBase(text, used), name);
+  }catch(err){
+    if(token === openToken) busy.textContent = 'Failed: ' + err.message + ' - press Reload to try again.';
+  }
+}
+
+function render(html, name){
+  current = {name, html};
+  frame.srcdoc = html;
+  busy.classList.remove('on');
+}
+
+// Swap the page content for the game view; the sidebar stays put.
+function show(name){
+  if(!viewer.classList.contains('on')) homeScroll = home.scrollTop;
+  current = null;
+  frame.srcdoc = '';
+  $('play-name').textContent = name;
+  home.classList.add('playing');
+  viewer.classList.add('on');
+  home.scrollTop = 0;
+}
+
+function closeViewer(){
+  openToken++;
+  if(document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  frame.srcdoc = '';
+  current = null; lastOpen = null;
+  viewer.classList.remove('on');
+  busy.classList.remove('on');
+  home.classList.remove('playing');
+  home.style.display = '';
+  home.scrollTop = homeScroll;
+}
+
+/* ---------- controls ---------- */
+$('close').onclick = closeViewer;
+$('reload').onclick = () => { if(lastOpen) openUrl(lastOpen.url, lastOpen.name); };
+
+
+function toggleFullscreen(){
+  if(document.fullscreenElement) document.exitFullscreen();
+  else if(current) stage.requestFullscreen().catch(() => {});
+}
+$('fs').onclick = toggleFullscreen;
+document.addEventListener('fullscreenchange', () => {
+  $('fs-label').textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+});
+
+addEventListener('keydown', e => {
+  if(panicCheck(e)) return;
+  if(e.target.tagName === 'INPUT') return;
+  if(e.key === 'f' || e.key === 'F'){ if(current) toggleFullscreen(); }
+  if(e.key === 'Escape' && !document.fullscreenElement && viewer.classList.contains('on')) closeViewer();
+});
+
+/* ---------- settings actions ---------- */
+$('refresh').onclick = loadList;
+$('blank').onclick = () => openAboutBlank();
+
+let resetArmed = null;
+$('reset-all').onclick = () => {
+  const b = $('reset-all');
+  if(!resetArmed){
+    b.textContent = 'Click again to confirm';
+    resetArmed = setTimeout(() => { resetArmed = null; b.textContent = 'Reset everything'; }, 4000);
+    return;
+  }
+  clearTimeout(resetArmed); resetArmed = null;
+  b.textContent = 'Reset everything';
+  try { ['universe-settings', 'universe-custom-themes', 'universe-active-theme'].forEach(k => localStorage.removeItem(k)); } catch {}
+  settings = Object.assign({}, DEFAULT_SETTINGS);
+  recordingPanic = false;
+  applyTheme(PRESET_THEMES[0]);
+  makerInitialized = false; populateMakerFromActiveTheme();
+  $('tm-name').value = '';
+  applySettings();
+  buildGrid();
+};
+
+const nativeOpen = window.open.bind(window);
+
+function openAboutBlank(quiet){
+  const w = nativeOpen('about:blank', '_blank');
+  if(!w){ if(!quiet) alert('Popup blocked - allow popups for this site.'); return false; }
+
+  // Clone the page, minus whatever is currently loaded in the iframe and
+  // reset to the HTMLS tab, so the copy boots to a clean homepage.
+  const root = document.documentElement.cloneNode(true);
+  root.setAttribute('data-blank', '1');   // marks the copy so it never re-opens itself
+  const f = root.querySelector('#frame');
+  if(f) f.removeAttribute('srcdoc');
+  const v = root.querySelector('#viewer');
+  if(v) v.classList.remove('on');
+  const h = root.querySelector('#home');
+  if(h){ h.style.display = ''; h.classList.remove('playing'); }
+  root.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'htmls'));
+  const th = root.querySelector('#tab-htmls'); if(th) th.classList.add('active');
+  root.querySelectorAll('.tabpanel').forEach(p => p.classList.toggle('active', p.id === 'tab-htmls'));
+  const clonedBar = root.querySelector('#bar');
+  if(clonedBar) clonedBar.classList.remove('settings-active', 'custom-active');
+  root.querySelectorAll('[data-custom-tab]').forEach(el => el.remove());
+
+  // Write the current cloak values directly into the about:blank copy so its
+  // title and favicon do not depend on the cloned page's previous DOM state.
+  const clonedTitle = root.querySelector('head title');
+  if(clonedTitle) clonedTitle.textContent = settings.cloakTitle || DEFAULT_TITLE;
+  let clonedIcon = root.querySelector('head link[rel="icon"]');
+  if(settings.cloakIcon){
+    if(!clonedIcon){
+      clonedIcon = root.ownerDocument.createElement('link');
+      clonedIcon.setAttribute('rel', 'icon');
+      root.querySelector('head').appendChild(clonedIcon);
+    }
+    clonedIcon.setAttribute('href', settings.cloakIcon);
+  }else if(clonedIcon){
+    clonedIcon.remove();
+  }
+
+  w.document.open();
+  w.document.write('<!DOCTYPE html>' + root.outerHTML);
+  w.document.close();
+  // Re-apply after parsing; this also covers browsers that defer favicon
+  // discovery until the new about:blank document has finished writing.
+  try{
+    w.document.title = settings.cloakTitle || DEFAULT_TITLE;
+    const writtenIcon = w.document.querySelector('link[rel="icon"]');
+    if(writtenIcon && settings.cloakIcon) writtenIcon.href = settings.cloakIcon;
+  }catch(e){}
+  return true;
+}
+
+// "Always open in about:blank": reopen there on load, then send this tab away.
+function maybeAutoBlank(){
+  if(!settings.autoBlank || window.top !== window) return;
+  if(document.documentElement.hasAttribute('data-blank') || location.href === 'about:blank') return;
+  const go = () => {
+    if(!openAboutBlank(true)) return false;
+    location.replace(safeUrl(settings.panicUrl) || DEFAULT_SETTINGS.panicUrl);
+    return true;
+  };
+  if(go()) return;
+  // popup blocked without a click - try again on the first one
+  addEventListener('click', function retry(){
+    if(go()) removeEventListener('click', retry, true);
+  }, true);
+}
+
+/* ---------- kill switch ---------- */
+async function checkKillSwitch(){
+  try{
+    const res = await fetch(STATUS_URL, {cache:'no-store'});
+    if(!res.ok) return true; // unreachable - fail open
+    const data = await res.json();
+    return data && data.isValid !== false; // only an explicit false blocks
+  }catch(err){
+    return true; // network error / bad JSON - fail open
+  }
+}
+
+function lockout(){
+  document.body.innerHTML =
+    '<div style="position:fixed;inset:0;display:flex;flex-direction:column;' +
+    'align-items:center;justify-content:center;gap:8px;' +
+    'background:var(--bg,#111214);color:var(--text,#eee);' +
+    'font:14px system-ui,-apple-system,sans-serif;text-align:center;padding:20px">' +
+      '<div style="font-size:42px;font-weight:800">frick you guys i shut the universe down AGAIN so frick you dont expect me to give you guys the updated / new version. - tasdiam</div>' +
+      '<div style="color:var(--muted,#7d838c);font-size:13px">the list is currently unavailable</div>' +
+    '</div>';
+}
+
+/* ---------- rotating messages ---------- */
+// Turns the typed escapes \n, \t and \\ into the real characters.
+function unescapeMessage(line){
+  return line.replace(/\\([\\nt])/g, (m, c) => c === 'n' ? '\n' : c === 't' ? '\t' : '\\');
+}
+async function startMessages(){
+  const el = $('hero-msg');
+  if(!el || !MESSAGES_URL) return;
+  let text = '';
+  try{
+    text = await grab(MESSAGES_URL);
+    if(!text.trim()) text = await grab(bust(MESSAGES_URL));
+    if(!text.trim() && toRaw(MESSAGES_URL)) text = await grab(toRaw(MESSAGES_URL));
+  }catch{
+    try{ if(toRaw(MESSAGES_URL)) text = await grab(toRaw(MESSAGES_URL)); }catch{}
+  }
+  const msgs = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(unescapeMessage);
+  if(!msgs.length) return;            // keep the built-in message
+  // shuffle, then walk through them so nothing repeats until all have shown
+  for(let i = msgs.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1)); [msgs[i], msgs[j]] = [msgs[j], msgs[i]];
+  }
+  let i = 0;
+  el.textContent = msgs[0];
+  if(msgs.length < 2) return;
+  setInterval(() => {
+    if(document.hidden) return;
+    el.classList.add('fade');
+    setTimeout(() => {
+      i = (i + 1) % msgs.length;
+      el.textContent = msgs[i];
+      el.classList.remove('fade');
+    }, 350);
+  }, Math.max(1, MESSAGE_SECONDS) * 1000);
+}
+
+(async function init(){
+  const ok = await checkKillSwitch();
+  if(!ok){ lockout(); return; }
+  maybeAutoBlank();
+  loadList();
+  startMessages();
+})();
+</script>
+</body>
+</html>
