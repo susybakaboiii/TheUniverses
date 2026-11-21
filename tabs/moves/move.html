@@ -1,77 +1,104 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Message</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="color-scheme" content="dark light">
+<title>Tas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff4d9d'/%3E%3Cpath d='M9 16h14M17 10l6 6-6 6' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<!--
+  Locked-site launcher: open this file in a browser (double-click it) and the
+  one site set as LOCKED_SITE in the server's .env appears full-screen, with
+  no address bar and no password. (share/tas.html opens the full Tas, which
+  needs the password.) Needs ALLOW_EMBED=true in the server's .env.
+
+  >>> If your tunnel address changes, edit TAS_URL in the script below. <<<
+-->
 <style>
-  :root{
-    --bg:#120e1c; --bg2:#191327; --bg3:#211936; --border:#30264a;
-    --text:#f1ecff; --muted:#9a8fb8; --accent:#a77bff;
-    color-scheme:dark;
+  :root { --bg: #0f1115; --panel: #171a21; --line: #2a2f3a; --text: #e7e9ee; --muted: #9097a6; --accent: #ff4d9d; --accent-strong: #e0337f; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg: #f5f6f8; --panel: #ffffff; --line: #dde1e8; --text: #1b1e25; --muted: #626a7a; --accent: #e0337f; --accent-strong: #d42d76; }
   }
-  *{box-sizing:border-box}
-  html,body{height:100%; margin:0}
-  body{
-    background:var(--bg); color:var(--text);
-    font:15px 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
-    display:flex; align-items:center; justify-content:center;
-    padding:24px; text-align:center; overflow:hidden;
-  }
-  /* same soft glow + faint grid as The Universe */
-  body::before{
-    content:''; position:fixed; inset:0; pointer-events:none;
-    background:
-      radial-gradient(900px 500px at 50% -10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-      linear-gradient(color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px) 0 0 / 52px 52px,
-      linear-gradient(90deg, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px) 0 0 / 52px 52px;
-  }
-  main{position:relative; max-width:720px}
-  h1{
-    margin:0; font-size:clamp(30px, 5vw, 58px); font-weight:700;
-    letter-spacing:-.02em; line-height:1.12; white-space:pre-line;
-    background:linear-gradient(115deg, var(--text) 15%, var(--accent) 95%);
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-  }
-  p{margin:16px 0 0; font-size:15px; color:var(--muted); white-space:pre-line}
-  p:empty{display:none}
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 "Parkinsans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
+  [hidden] { display: none !important; }
+
+  #help { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; background: var(--bg); }
+  .card { width: 100%; max-width: 440px; box-sizing: border-box; padding: 26px; display: grid; gap: 14px;
+          background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+  .card h1 { margin: 0; font-size: 19px; }
+  .card p { margin: 0; color: var(--muted); }
+  .btn { justify-self: start; display: inline-block; padding: 10px 16px; border-radius: 9px; font-weight: 600;
+         background: var(--accent-strong); color: #fff; text-decoration: none; }
+  .btn:hover { filter: brightness(1.08); }
+
+  #slow { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: calc(100vw - 32px); box-sizing: border-box;
+          display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; border-radius: 12px;
+          background: var(--panel); border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(0,0,0,.35); font-size: 14px; }
+  #slow a { color: var(--accent); font-weight: 600; white-space: nowrap; }
+  #slow button { border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 4px; }
 </style>
-<script>
-/* ---------- theme: follow The Universe's active theme ---------- */
-(function () {
-  const KEY = "universe-active-theme", VARS = ["bg", "bg2", "bg3", "border", "text", "muted", "accent"];
-  function read() {
-    try { const t = JSON.parse(localStorage.getItem(KEY) || "null"); if (t && t.bg) return t; } catch {}
-    try {  // fallback: read the colors straight off the parent page
-      if (parent !== window) {
-        const cs = getComputedStyle(parent.document.documentElement), t = {};
-        VARS.forEach(k => t[k] = cs.getPropertyValue("--" + k).trim());
-        if (t.bg) return t;
-      }
-    } catch {}
-    return null;
-  }
-  function apply() {
-    const t = read();
-    if (!t || !VARS.every(k => typeof t[k] === "string" && t[k])) return;
-    const root = document.documentElement;
-    VARS.forEach(k => root.style.setProperty("--" + k, t[k]));
-    const n = parseInt(String(t.bg).slice(1), 16) || 0;
-    const lum = (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
-    root.style.colorScheme = lum > 0.5 ? "light" : "dark";
-  }
-  apply();
-  addEventListener("storage", e => { if (e.key === KEY || e.key === null) apply(); });
-})();
-</script>
 </head>
 <body>
-<main>
-  <h1>Getting a rework.</h1>
-  <p>Come back later.</p>
-</main>
+<iframe id="app" title="Site"
+        allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-read; clipboard-write"
+        allowfullscreen></iframe>
+
+<div id="slow" role="status" hidden>
+  <span>Not loading? The server may be offline, or this browser blocks it here.</span>
+  <a id="slow-link" target="_blank" rel="noopener">Open directly</a>
+  <button type="button" id="slow-close" aria-label="Dismiss">×</button>
+</div>
+
+<div id="help" hidden>
+  <div class="card" role="alert">
+    <h1 id="help-title">This can't run inside this file</h1>
+    <p id="help-text"></p>
+    <a class="btn" id="help-link" target="_blank" rel="noopener">Open it in a new tab</a>
+  </div>
+</div>
+
+<script>
+  // ---- the only line you may need to edit ----------------------------------
+  const TAS_URL = "https://hints-nails-make-leo.trycloudflare.com/site";
+  // ---------------------------------------------------------------------------
+
+  const tasOrigin = new URL(TAS_URL).origin;
+  // Same font as the app, served by the Tas server.
+  const fontCss = document.createElement("style");
+  fontCss.textContent = `@font-face { font-family: "Parkinsans"; font-weight: 300 800; font-display: swap; src: url(${new URL("/fonts/latin.woff2", TAS_URL)}) format("woff2"); }`;
+  document.head.appendChild(fontCss);
+  const frame = document.getElementById("app");
+  const slow = document.getElementById("slow");
+  const help = document.getElementById("help");
+
+  const target = new URL(TAS_URL);
+  frame.src = target.href;
+  for (const id of ["slow-link", "help-link"]) document.getElementById(id).href = target.href;
+
+  let ready = false;
+  window.addEventListener("message", (e) => {
+    if (e.source !== frame.contentWindow || e.origin !== tasOrigin || !e.data || !e.data.tasState) return;
+    if (e.data.tasState === "ready") {
+      ready = true;
+      slow.hidden = true;
+    } else if (e.data.tasState === "error") {
+      // The page shows its own error screen (with a new-tab button); just stop the timer.
+      ready = true;
+      slow.hidden = true;
+    }
+  });
+
+  // No word from the page after 15 s: it's offline, the address is out of
+  // date, or the browser refused to show it here. Offer the direct link.
+  setTimeout(() => { if (!ready) slow.hidden = false; }, 15000);
+  document.getElementById("slow-close").addEventListener("click", () => (slow.hidden = true));
+
+  if (location.protocol === "file:" && !("serviceWorker" in navigator)) {
+    document.getElementById("help-text").textContent =
+      "This browser doesn't support what this needs when it's opened from a file. Open it in a new tab instead.";
+    help.hidden = false;
+  }
+</script>
 </body>
 </html>
