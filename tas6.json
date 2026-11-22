@@ -58,6 +58,10 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cs.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cs.png"
   },
+  "People Playground": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ppg.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/ppg.png"
+  },
   "Fear & Hunger": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fearandhunger.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/fearandhunger.png"
@@ -118,6 +122,10 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/emerald.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/emerald.png"
   },
+  "Pokemon: Heart Gold": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/heartgold.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/heartgold.png"
+  },
   "Bart Blast": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/bartblast.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/bartblast.png"
@@ -134,14 +142,26 @@
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/cookies.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/cookies.png"
   },
+  "0v0": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ovo.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/ovo.png"
+  },
   "Among Us": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/amongus.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/amongus.png",
     "desc": "Latest Update | Fixed"
   },
+  "Fruit Ninja": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fruit.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/fruit.png"
+  },
   "Kerbal Space Program": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/ksp.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/ksp.png"
+  },
+  "60 Seconds: Reatomized": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/60seconds.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/60seconds.png"
   },
   "Gang Beasts": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/gangbeasts.html",
@@ -210,6 +230,10 @@
   "Granny 2": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/granny2.html",
     "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/granny2.png"
+  },
+  "Granny 3": {
+    "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/granny3.html",
+    "image": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/thumbs/granny3.png"
   },
   "Five Nights at Freddy's": {
     "url": "https://cdn.jsdelivr.net/gh/susybakaboiii/TheUniverses@main/fnaf.html",
